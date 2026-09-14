@@ -4,7 +4,7 @@ MPICC   ?= mpicc
 CFLAGS  ?= -O2 -Wall -Wextra
 LDLIBS  := -lm
 
-all: task1
+all: task1 task2
 
 task1: task1.c
 	$(MPICC) $(CFLAGS) $< -o $@ $(LDLIBS)

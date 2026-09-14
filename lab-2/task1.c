@@ -241,7 +241,7 @@ int main(int argc, char *argv[]) {
      * degenerates; fall back to block, which is equivalent at P=1. */
     if (scheme == SCHEME_DYNAMIC && size == 1) {
         scheme = SCHEME_BLOCK;
-        scheme_name = "dynamic(->block,P=1)";
+        scheme_name = "dynamic(->block@P1)";
     }
 
     /* --- Phase: allocation ----------------------------------------------- */

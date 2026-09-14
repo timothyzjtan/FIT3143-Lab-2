@@ -43,11 +43,27 @@ def newest(pattern):
     return files[-1] if files else None
 
 
-def load(path):
-    if not path or not os.path.exists(path):
+def load(path_or_pattern):
+    """Load one CSV, or every CSV matching a glob.
+
+    A sweep can be re-measured on its own (SWEEPS=A bench/sweep-mpi.sh), which
+    leaves several CSVs per implementation, each holding a different subset of
+    the sweeps. Reading only the newest would silently drop the sweeps it does
+    not contain, so all matching files are concatenated. Rows stay distinct
+    because a re-measurement under a different scheme carries a different
+    impl name.
+    """
+    if not path_or_pattern:
         return []
-    with open(path, newline="") as fh:
-        return list(csv.DictReader(fh))
+    if os.path.exists(path_or_pattern):
+        paths = [path_or_pattern]
+    else:
+        paths = sorted(glob.glob(os.path.join(RESULTS, path_or_pattern)))
+    rows = []
+    for path in paths:
+        with open(path, newline="") as fh:
+            rows.extend(csv.DictReader(fh))
+    return rows
 
 
 def fnum(row, key, default=0.0):
@@ -68,19 +84,29 @@ def median_by(rows, keyfields, valuefield):
     return {k: statistics.median(v) for k, v in buckets.items() if v}
 
 
-def serial_phases(row):
-    """Sum of the phases that do NOT scale with worker count.
+# Phases that do NOT scale with worker count: allocation, dissemination,
+# gathering, the root's global sort and writing the file all happen on one
+# worker, or are pure communication.
+SERIAL_PHASES = ("t_alloc", "t_bcast", "t_merge", "t_comm", "t_sort", "t_io")
 
-    Whatever columns a given implementation reports, everything except
-    t_compute is serial: allocation, dissemination, gathering, sorting and
-    writing all happen on one worker (or are pure communication).
-    """
-    total = 0.0
-    for k in ("t_alloc", "t_bcast", "t_merge", "t_lsort", "t_comm",
-              "t_sort", "t_io"):
-        if k in row:
-            total += fnum(row, k)
-    return total
+# Phases that DO scale. t_lsort is the hybrid's per-rank sort of its own
+# results: every rank runs it at the same time on disjoint data, so it is
+# parallel work, not an added serial cost. Counting it as serial would inflate
+# s and depress the Amdahl ceiling for the hybrid alone, making the three
+# implementations incomparable.
+PARALLEL_PHASES = ("t_compute", "t_lsort")
+
+
+def sum_phases(row, keys):
+    return sum(fnum(row, k) for k in keys if k in row)
+
+
+def serial_phases(row):
+    return sum_phases(row, SERIAL_PHASES)
+
+
+def parallel_phases(row):
+    return sum_phases(row, PARALLEL_PHASES)
 
 
 def main():
@@ -93,9 +119,9 @@ def main():
 
     os.makedirs(args.out, exist_ok=True)
 
-    base = load(args.baselines or newest("baselines-*.csv"))
-    mpi = load(args.mpi or newest("mpi-*.csv"))
-    hyb = load(args.hybrid or newest("hybrid-*.csv"))
+    base = load(args.baselines or "baselines-*.csv")
+    mpi = load(args.mpi or "mpi-*.csv")
+    hyb = load(args.hybrid or "hybrid-*.csv")
 
     if not base:
         sys.exit("error: no baseline CSV found in bench/results "
@@ -140,7 +166,7 @@ def main():
         # Phase medians across the repetitions of this configuration.
         s_abs = statistics.median([serial_phases(r) for r in group])
         c_abs = statistics.median(
-            [fnum(r, "t_compute") for r in group]) if group else 0.0
+            [parallel_phases(r) for r in group]) if group else 0.0
 
         denom = s_abs + c_abs
         s_frac = (s_abs / denom) if denom > 0 else 0.0
@@ -180,15 +206,20 @@ def main():
         if not rows:
             return
         print(f"\n{title}")
-        print(f"  {xlabel:>10} {'impl':<26} {'total(s)':>9} {'speedup':>8} "
-              f"{'amdahl':>8} {'eff':>6}")
+        # PxT is printed because the hybrid reaches one worker count by several
+        # splits (8 = 8x1 = 4x2 = 2x4 = 1x8); without it those rows are
+        # indistinguishable and look like duplicates.
+        print(f"  {xlabel:>10} {'PxT':>6} {'impl':<26} {'total(s)':>9} "
+              f"{'speedup':>8} {'amdahl':>8} {'eff':>6}")
         for r in rows:
-            print(f"  {r[xkey]:>10} {r['impl']:<26} {r['t_total_median']:>9.3f} "
+            split = f"{r['procs']}x{r['threads']}"
+            print(f"  {r[xkey]:>10} {split:>6} {r['impl']:<26} "
+                  f"{r['t_total_median']:>9.3f} "
                   f"{r['speedup_empirical']:>8.2f} {r['speedup_amdahl']:>8.2f} "
                   f"{r['efficiency']:>6.2f}")
 
     b = sorted([r for r in rows_out if r["sweep"] == "B" and r["impl"] != "serial"],
-               key=lambda r: (r["impl"], r["workers"]))
+               key=lambda r: (r["impl"], r["workers"], r["procs"]))
     show("Scaling with worker count (sweep B)", b, "workers", "workers")
 
     c = sorted([r for r in rows_out if r["sweep"] == "C"],

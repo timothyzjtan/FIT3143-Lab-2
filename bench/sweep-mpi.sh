@@ -32,7 +32,8 @@ CHUNK=4096
 # dynamic is the default scheme for the n- and P-sweeps: it measured best at
 # n=1e7 and is the only scheme that adapts to cores of differing speed, which
 # this host has (4 performance + 6 efficiency cores).
-MAIN_SCHEME=dynamic
+MAIN_SCHEME=${MAIN_SCHEME:-dynamic}
+SWEEPS="${SWEEPS:-A B C}"
 SCHEMES="block cyclic blockcyclic dynamic"
 
 # Same ladder as the baseline sweep so the two are directly comparable.
@@ -82,6 +83,7 @@ echo "=============================================="
 SERIAL="$REPO_ROOT/week-4-lab-1/task1"
 
 echo
+case " $SWEEPS " in *" A "*)
 echo "--- Sweep A: increasing n (P=$FIXED_PROCS, scheme=$MAIN_SCHEME) ---"
 for n in $LADDER; do
     echo "  n = $n"
@@ -94,6 +96,9 @@ for n in $LADDER; do
 done
 
 echo
+;; esac
+
+case " $SWEEPS " in *" B "*)
 echo "--- Sweep B: increasing processes (n=$N_FIXED, scheme=$MAIN_SCHEME) ---"
 "$SERIAL" "$N_FIXED" --out "$SCRATCH/ref.txt" >/dev/null
 for p in $PROC_LIST; do
@@ -106,6 +111,9 @@ for p in $PROC_LIST; do
 done
 
 echo
+;; esac
+
+case " $SWEEPS " in *" C "*)
 echo "--- Sweep C: partitioning scheme comparison (n=$N_FIXED, P=$FIXED_PROCS) ---"
 for s in $SCHEMES; do
     echo "  scheme = $s"
@@ -117,4 +125,6 @@ for s in $SCHEMES; do
 done
 
 echo
+;; esac
+
 echo "Done. $(( $(wc -l < "$RESULTS") - 1 )) rows -> $RESULTS"

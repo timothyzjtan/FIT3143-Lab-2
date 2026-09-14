@@ -62,8 +62,15 @@
  *   t_total    whole run
  *
  * Compile: mpicc -O2 -Wall -Wextra task2.c -o task2 -fopenmp -lm
- * Run:     mpirun -np 4 ./task2 10000000 --threads 2
- *          mpirun -np 4 ./task2 10000000 --threads 2 --scheme dynamic --csv
+ * Run:     mpirun --bind-to none -np 4 ./task2 10000000 --threads 2
+ *          mpirun --bind-to none -np 4 ./task2 10000000 --threads 2 \
+ *                 --scheme dynamic --csv
+ *
+ * --bind-to none IS REQUIRED. Open MPI binds a rank to a single core (np<=2)
+ * or socket (np>2) by default, which pins all of that rank's OpenMP threads
+ * to one core: at n=2e7, P=1, T=8 the search took 1.147 s bound against
+ * 0.258 s unbound. The program is correct either way, so the only symptom is
+ * a threading level that appears to do nothing.
  */
 
 #include <stdio.h>
@@ -221,7 +228,7 @@ int main(int argc, char *argv[]) {
     /* Master-worker needs someone to coordinate; at P=1 it degenerates. */
     if (scheme == SCHEME_DYNAMIC && size == 1) {
         scheme = SCHEME_BLOCK;
-        scheme_name = "dynamic(->block,P=1)";
+        scheme_name = "dynamic(->block@P1)";
     }
 
     omp_set_num_threads(nthreads);
