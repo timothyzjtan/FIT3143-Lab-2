@@ -38,6 +38,17 @@ SERIES_STYLE = [
 LABEL = {k: lab for k, lab, _, _ in SERIES_STYLE}
 ORDER = [k for k, _, _, _ in SERIES_STYLE]
 
+# Figures 6 and 7 plot three MODELS of one implementation rather than several
+# implementations, so their series are not families and cannot be coloured by
+# ORDER position. They borrow slots 3-5, which the palette validator already
+# cleared as mutually distinguishable, and register their own labels.
+MODEL_SERIES = [("empirical", "Measured", 3),
+                ("amdahl",    "Amdahl",   4),
+                ("gustafson", "Gustafson", 5)]
+LABEL.update({k: lab for k, lab, _ in MODEL_SERIES})
+SLOT = {k: i + 1 for i, k in enumerate(ORDER)}
+SLOT.update({k: s for k, _, s in MODEL_SERIES})
+
 
 def family(impl):
     """Collapse an impl name to the series it belongs to.
@@ -58,8 +69,13 @@ def load(path):
         for k in ("n", "procs", "threads", "workers"):
             r[k] = int(r[k])
         for k in ("t_total_median", "speedup_empirical", "efficiency",
-                  "speedup_amdahl", "speedup_gustafson", "serial_fraction"):
-            r[k] = float(r[k])
+                  "speedup_amdahl", "speedup_gustafson", "serial_fraction",
+                  "serial_fraction_amdahl", "serial_fraction_gustafson"):
+            if k in r:
+                r[k] = float(r[k])
+        # Karp-Flatt is blank at one worker, where the formula is undefined.
+        r["karp_flatt"] = (float(r["karp_flatt"])
+                           if r.get("karp_flatt") not in (None, "") else None)
         r["family"] = family(r["impl"])
     return rows
 
@@ -167,7 +183,7 @@ def line_chart(fid, series, xlab, ylab, xlog=False, ylog=False,
     for key, pts in series:
         if not pts:
             continue
-        i = ORDER.index(key)
+        i = SLOT[key] - 1
         d = " ".join(f"{'M' if j == 0 else 'L'}{sx(p[0]):.1f},{sy(p[1]):.1f}"
                      for j, p in enumerate(pts))
         o.append(f'<path class="ln s{i+1}" d="{d}"/>')
@@ -200,7 +216,7 @@ def bar_chart(fid, rows, valkey, vallab, fmt=lambda v: f"{v:.2f}"):
     for i, r in enumerate(rows):
         y = PAD["t"] + i * (bh + gap)
         w = (r[valkey] / vmax) * (x1 - x0)
-        si = ORDER.index(r["family"]) + 1
+        si = SLOT[r["family"]]
         label = f'{r["impl"]}  ({r["procs"]}×{r["threads"]})'
         o.append(f'<text class="blabel" x="{x0-10}" y="{y+bh/2+4:.0f}" '
                  f'text-anchor="end">{esc(label)}</text>')
@@ -335,7 +351,7 @@ JS = """
 def legend(keys):
     o = ['<div class="legend">']
     for k in keys:
-        i = ORDER.index(k) + 1
+        i = SLOT[k]
         o.append(f'<span><i class="swatch s{i}f" style="background:var(--s{i})"></i>'
                  f'{esc(LABEL[k])}</span>')
     o.append('</div>')
@@ -479,6 +495,114 @@ def main():
         body.append('<p class="note">All at n = 30M and 8 workers, so the only '
                     'variable is how the candidate range is divided.</p>')
         body.append(f'<figure>{figs["fig5"]}</figure>')
+
+    # ---- Figures 6 & 7: measured against theoretical (Task 3) ----------
+    def theory_figure(fid, fam, heading, xlab, note, xkey):
+        """Plot measured / Amdahl / Gustafson for one implementation.
+
+        Sweep B holds n fixed and varies the degree of parallelism, which is
+        exactly the experiment both laws describe, so the theory curves are
+        only drawn over sweep B. The hybrid reaches a worker count by several
+        P x T splits; the fastest is plotted and every split is tabled.
+        """
+        fam_rows = [r for r in B if r["family"] == fam]
+        if not fam_rows:
+            return
+        best = best_by(fam_rows, lambda r: r[xkey])
+        xs = sorted(best)
+        s = [(mk, [(x, best[x][col], f'{best[x]["procs"]}x{best[x]["threads"]}')
+                   for x in xs])
+             for mk, col in (("empirical", "speedup_empirical"),
+                             ("amdahl", "speedup_amdahl"),
+                             ("gustafson", "speedup_gustafson"))]
+        svg, pts = line_chart(fid, s, xlab, "speedup vs serial",
+                              xfmt=lambda v: f"{v:g}",
+                              yfmt=lambda v: f"{v:g}x", hline=None)
+        figs[fid] = svg
+        body.append(f"<h2>{esc(heading)}</h2>")
+        body.append(f'<p class="note">{note}</p>')
+        body.append(legend([k for k, _ in s]))
+        body.append('<figure>' + svg.replace(
+            "<svg ", f"<svg data-pts={chr(34)}{esc(pts)}{chr(34)} ", 1) + '</figure>')
+        body.append('<details><summary>Table view - fractions and Karp-Flatt'
+                    '</summary>' + table(
+            ["impl", "PxT", "workers", "measured", "Amdahl", "Gustafson",
+             "s (Amdahl)", "s (Gustafson)", "Karp-Flatt e"],
+            [[r["impl"], f'{r["procs"]}x{r["threads"]}', r["workers"],
+              f'{r["speedup_empirical"]:.2f}x', f'{r["speedup_amdahl"]:.2f}x',
+              f'{r["speedup_gustafson"]:.2f}x',
+              f'{r.get("serial_fraction_amdahl", 0):.4f}',
+              f'{r.get("serial_fraction_gustafson", 0):.4f}',
+              "-" if r["karp_flatt"] is None else f'{r["karp_flatt"]:.4f}']
+             for r in sorted(fam_rows, key=lambda r: (r["workers"], r["procs"]))])
+            + '</details>')
+
+    theory_figure(
+        "fig6", "mpi",
+        "6. Task 1 (Open MPI): measured against theoretical speedup",
+        "MPI processes",
+        "n fixed at 30M. Amdahl's serial fraction is measured on the serial "
+        "run at the same n - the fixed-workload experiment the law assumes - "
+        "so its curve is a ceiling that does not move as processes are added. "
+        "Gustafson's fraction is measured on each parallel run itself, the "
+        "scaled-workload assumption, which is why it rises almost linearly. "
+        "The measured curve sits below both because neither law charges for "
+        "broadcast, gather or memory bandwidth; the Karp-Flatt column in the "
+        "table separates those two causes - a rising e is overhead, a flat e "
+        "is genuine serial work.",
+        "procs")
+
+    theory_figure(
+        "fig7", "hybrid",
+        "7. Task 2 (hybrid MPI + OpenMP): measured against theoretical speedup",
+        "workers (MPI ranks x OpenMP threads)",
+        "Same construction as figure 6, with the worker count now the product "
+        "of ranks and threads. The two levels are not equivalent: threads "
+        "inside a rank share the address space and skip the gather entirely, "
+        "while ranks pay for it, so two splits with the same worker count can "
+        "land far apart. Both laws see only the product and predict one value "
+        "for both, which is precisely the modelling gap this figure shows.",
+        "workers")
+
+    # ---- Figure 8: threads per rank at a fixed process count -----------
+    # Specification section (b) graph 1: the hybrid against Task 1 with an
+    # increasing number of threads and THE SAME number of MPI processes. Task 1
+    # has no threads, so it is a flat reference at that process count - which is
+    # the point of the comparison: whether a second level of parallelism inside
+    # each rank buys anything the ranks alone did not.
+    FIXED_P = 4
+    hyb_p = sorted([r for r in B if r["family"] == "hybrid"
+                    and r["procs"] == FIXED_P], key=lambda r: r["threads"])
+    mpi_p = [r for r in B if r["family"] == "mpi" and r["procs"] == FIXED_P]
+    if hyb_p and mpi_p:
+        ts = [r["threads"] for r in hyb_p]
+        s8 = [("hybrid", [(r["threads"], r["speedup_empirical"],
+                           f'{FIXED_P}x{r["threads"]}') for r in hyb_p]),
+              ("mpi", [(t, mpi_p[0]["speedup_empirical"], f'{FIXED_P}x1') 
+                       for t in ts])]
+        svg, pts = line_chart("fig8", s8, f"OpenMP threads per rank (MPI ranks fixed at {FIXED_P})",
+                              "speedup vs serial", xfmt=lambda v: f"{v:g}",
+                              yfmt=lambda v: f"{v:g}x")
+        figs["fig8"] = svg
+        body.append("<h2>8. Threads per rank at a fixed process count</h2>")
+        body.append('<p class="note">n fixed at 30M, MPI ranks fixed at '
+                    f'{FIXED_P}. Task 1 has no threads, so it is flat at its '
+                    f'{FIXED_P}-process speedup; the hybrid adds OpenMP threads '
+                    'inside each of those same ranks. Total workers is ranks x '
+                    'threads, so the right-hand end of this axis is already '
+                    'oversubscribing the 10-core host.</p>')
+        body.append(legend([k for k, _ in s8]))
+        body.append('<figure>' + svg.replace(
+            "<svg ", f"<svg data-pts={chr(34)}{esc(pts)}{chr(34)} ", 1) + '</figure>')
+        body.append('<details><summary>Table view - every P x T split at n = 30M'
+                    '</summary>' + table(
+            ["P", "T", "workers", "impl", "total (s)", "speedup", "efficiency"],
+            [[r["procs"], r["threads"], r["workers"], r["impl"],
+              f'{r["t_total_median"]:.3f}', f'{r["speedup_empirical"]:.2f}x',
+              f'{r["efficiency"]:.2f}']
+             for r in sorted([x for x in B if x["family"] == "hybrid"],
+                             key=lambda r: (r["procs"], r["threads"]))])
+            + '</details>')
 
     title = "Lab 2 Prime Search Benchmarks"
     page = (f"<title>{title}</title>{CSS}<div class=\"wrap\">"
