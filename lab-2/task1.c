@@ -282,10 +282,20 @@ int main(int argc, char *argv[]) {
     }
 
     case SCHEME_CYCLIC: {
-        /* Stride by the number of ranks: rank r takes 2+r, 2+r+P, 2+r+2P, ...
-         * Costs alternate between ranks, so the sqrt(k) gradient is shared
-         * almost perfectly - at the price of poor cache locality. */
-        for (long k = 2 + rank; k < n && ok; k += size) {
+        /* Interleave by rank so the sqrt(k) cost gradient is shared evenly.
+         *
+         * CRITICAL: stride over ODD candidates only, not over every integer.
+         * The obvious formulation (k = 2+rank, k += size) aliases parity with
+         * the stride whenever P is even - with P=8, rank 0 draws 2,10,18,...
+         * which are all even, so is_prime rejects each in a single modulo and
+         * half the ranks do essentially no work. Measured at n=1e7, P=8 that
+         * gave a 240x imbalance and made cyclic SLOWER than block.
+         *
+         * Walking the odds (3,5,7,...) with stride 2P removes the aliasing:
+         * every rank receives a genuine share of the real work. 2 is the only
+         * even prime, so the root contributes it directly. */
+        if (rank == 0 && n > 2) ok = vec_push(&local, 2);
+        for (long k = 3 + 2 * (long) rank; k < n && ok; k += 2 * (long) size) {
             if (is_prime(k)) ok = vec_push(&local, k);
         }
         break;
