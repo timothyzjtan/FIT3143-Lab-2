@@ -80,7 +80,13 @@ def load(path_or_pattern):
     if os.path.exists(path_or_pattern):
         paths = [path_or_pattern]
     else:
-        paths = sorted(glob.glob(os.path.join(RESULTS, path_or_pattern)))
+        # Try the pattern as given (absolute, or relative to the caller's cwd)
+        # before falling back to bench/results. Cluster runs land in a separate
+        # directory - bench/results-caas - so that machine's numbers are never
+        # averaged together with the single-host ones by the default glob.
+        paths = sorted(glob.glob(path_or_pattern))
+        if not paths:
+            paths = sorted(glob.glob(os.path.join(RESULTS, path_or_pattern)))
     rows = []
     for path in paths:
         with open(path, newline="") as fh:

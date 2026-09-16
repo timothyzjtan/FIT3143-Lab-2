@@ -23,7 +23,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN_DIR="$REPO_ROOT/week-4-lab-1"
-OUT_DIR="$REPO_ROOT/bench/results"
+OUT_DIR="${OUT_DIR:-$REPO_ROOT/bench/results}"
 SCRATCH="$(mktemp -d)"
 trap 'rm -rf "$SCRATCH"' EXIT
 
@@ -31,7 +31,10 @@ QUICK=0
 [ "${1:-}" = "--quick" ] && QUICK=1
 
 REPS=3
-FIXED_THREADS=8
+FIXED_THREADS="${FIXED_THREADS:-8}"
+# SWEEPS selects which of A/B/C to run, mirroring sweep-mpi.sh/sweep-hybrid.sh,
+# so one sweep can be re-measured (or split across jobs) without redoing all.
+SWEEPS="${SWEEPS:-A B C}"
 # (schedule list for Sweep C is defined inline below, as kind+chunk pairs)
 
 # The specification requires at least 30 distinct values of n, and warns
@@ -57,12 +60,12 @@ if [ "$QUICK" -eq 1 ]; then
     N_FIXED=2000000
     THREAD_LIST="1 2 4"
 else
-    THREAD_LIST="1 2 3 4 5 6 7 8 9 10 12 14 16"
+    THREAD_LIST="${THREAD_LIST:-1 2 3 4 5 6 7 8 9 10 12 14 16}"
 fi
 
 mkdir -p "$OUT_DIR"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-RESULTS="$OUT_DIR/baselines-$STAMP.csv"
+RESULTS="$OUT_DIR/baselines-$STAMP${RUN_TAG:+-$RUN_TAG}.csv"
 
 for b in task1 task2 task3; do
     if [ ! -x "$BIN_DIR/$b" ]; then
@@ -93,6 +96,12 @@ build_ladder() {
 }
 
 LADDER="$(build_ladder)"
+# LADDER_SLICE="from:to" keeps only that 1-indexed range of the ladder, so one
+# long sweep can be split across several jobs without changing any n value
+# (CAAS enforces a 30-minute wall limit). Empty = the whole ladder.
+if [ -n "${LADDER_SLICE:-}" ]; then
+    LADDER="$(echo "$LADDER" | sed -n "${LADDER_SLICE%%:*},${LADDER_SLICE##*:}p")"
+fi
 LADDER_COUNT="$(echo "$LADDER" | wc -l | tr -d ' ')"
 
 echo "=============================================="
@@ -110,6 +119,7 @@ fi
 
 # ---------------------------------------------------------------- Sweep A ---
 echo
+case " $SWEEPS " in *" A "*)
 echo "--- Sweep A: increasing n (threads fixed at $FIXED_THREADS) ---"
 for n in $LADDER; do
     echo "  n = $n"
@@ -128,6 +138,9 @@ for n in $LADDER; do
 done
 
 # ---------------------------------------------------------------- Sweep B ---
+;; esac
+
+case " $SWEEPS " in *" B "*)
 echo
 echo "--- Sweep B: increasing threads (n fixed at $N_FIXED) ---"
 for rep in $(seq 1 "$REPS"); do
@@ -147,6 +160,9 @@ for t in $THREAD_LIST; do
 done
 
 # ---------------------------------------------------------------- Sweep C ---
+;; esac
+
+case " $SWEEPS " in *" C "*)
 echo
 echo "--- Sweep C: OpenMP schedule comparison (n=$N_FIXED, T=$FIXED_THREADS) ---"
 # chunk 0 = the implementation default. For `static` that means ONE contiguous
@@ -162,6 +178,8 @@ for cfg in "static 0" "static 4096" "dynamic 4096" "guided 0"; do
             --schedule "$1" --chunk "$2" --csv --out "$SCRATCH/c3.txt"
     done
 done
+
+;; esac
 
 echo
 echo "Done. $(( $(wc -l < "$RESULTS") - 1 )) rows -> $RESULTS"

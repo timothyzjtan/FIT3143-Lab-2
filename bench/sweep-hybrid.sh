@@ -22,7 +22,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN="$REPO_ROOT/lab-2/task2"
 SERIAL="$REPO_ROOT/week-4-lab-1/task1"
-OUT_DIR="$REPO_ROOT/bench/results"
+OUT_DIR="${OUT_DIR:-$REPO_ROOT/bench/results}"
 SCRATCH="$(mktemp -d)"
 trap 'rm -rf "$SCRATCH"' EXIT
 
@@ -47,10 +47,18 @@ SWEEPS="${SWEEPS:-A B C}"
 BIND="--bind-to none"
 SCHEMES="block blockcyclic dynamic"
 
+# Launcher prefix (rank count appended) and the per-run flag that reserves
+# one core per OpenMP thread. mpirun needs no such flag (--bind-to none is
+# enough on one host); under SLURM the sbatch scripts set
+#   LAUNCH="srun --mpi=pmix --cpu-bind=none -n"  LAUNCH_THREADS_FLAG="-c"
+# so each rank is allotted T cores and its threads may float across them.
+LAUNCH="${LAUNCH:-mpirun --allow-run-as-root --oversubscribe $BIND -np}"
+LAUNCH_THREADS_FLAG="${LAUNCH_THREADS_FLAG:-}"
+
 # Task 1's sweeps fix P=8; the hybrid fixes P x T = 8 as well so the two are
 # compared at the same degree of parallelism rather than the same rank count.
-FIXED_PROCS=4
-FIXED_THREADS=2
+FIXED_PROCS="${FIXED_PROCS:-4}"
+FIXED_THREADS="${FIXED_THREADS:-2}"
 
 N_MIN=20000000
 N_MAX=100000000
@@ -60,7 +68,7 @@ N_FIXED=30000000
 # (procs, threads) pairs for Sweep B. Covers the same 1..16 worker ladder as
 # the Task 1 P-sweep, and at several worker counts includes more than one
 # split so the cost of an MPI rank versus an OpenMP thread is measurable.
-GRID="1:1 2:1 1:2 3:1 4:1 2:2 1:4 5:1 6:1 3:2 2:3 8:1 4:2 2:4 1:8 10:1 5:2 12:1 6:2 4:3 3:4 16:1 8:2 4:4"
+GRID="${GRID:-1:1 2:1 1:2 3:1 4:1 2:2 1:4 5:1 6:1 3:2 2:3 8:1 4:2 2:4 1:8 10:1 5:2 12:1 6:2 4:3 3:4 16:1 8:2 4:4}"
 
 if [ "$QUICK" -eq 1 ]; then
     REPS=1; N_MIN=1000000; N_MAX=4000000; N_STEPS=3
@@ -71,14 +79,15 @@ fi
 [ -x "$SERIAL" ] || { echo "error: $SERIAL not built. Run: make -C week-4-lab-1" >&2; exit 1; }
 
 mkdir -p "$OUT_DIR"
-RESULTS="$OUT_DIR/hybrid-$(date +%Y%m%d-%H%M%S).csv"
+RESULTS="$OUT_DIR/hybrid-$(date +%Y%m%d-%H%M%S)${RUN_TAG:+-$RUN_TAG}.csv"
 echo "impl,n,procs,threads,prime_count,t_alloc,t_bcast,t_compute,t_lsort,t_comm,t_sort,t_io,t_total,imbalance,workers,rep,sweep" > "$RESULTS"
 
 # run <sweep> <rep> <procs> <threads> <n> <scheme>
 run() {
     local sweep="$1" rep="$2" procs="$3" threads="$4" n="$5" scheme="$6"
-    local row
-    row="$(mpirun --allow-run-as-root --oversubscribe $BIND -np "$procs" "$BIN" "$n" \
+    local row tflag=()
+    [ -n "$LAUNCH_THREADS_FLAG" ] && tflag=("$LAUNCH_THREADS_FLAG" "$threads")
+    row="$($LAUNCH "$procs" ${tflag[@]+"${tflag[@]}"} "$BIN" "$n" \
            --threads "$threads" --scheme "$scheme" --chunk "$CHUNK" \
            --csv --out "$SCRATCH/out.txt")"
     echo "${row},${rep},${sweep}" >> "$RESULTS"
@@ -96,6 +105,12 @@ LADDER="$(awk -v lo="$N_MIN" -v hi="$N_MAX" -v steps="$N_STEPS" 'BEGIN {
     for (i = 0; i < steps; i++)
         printf "%d\n", int(lo * exp((log(hi)-log(lo)) * i / (steps-1)) / 1000) * 1000
 }' | sort -n -u)"
+# LADDER_SLICE="from:to" keeps only that 1-indexed range of the ladder, so one
+# long sweep can be split across several jobs without changing any n value
+# (CAAS enforces a 30-minute wall limit). Empty = the whole ladder.
+if [ -n "${LADDER_SLICE:-}" ]; then
+    LADDER="$(echo "$LADDER" | sed -n "${LADDER_SLICE%%:*},${LADDER_SLICE##*:}p")"
+fi
 LADDER_COUNT="$(echo "$LADDER" | wc -l | tr -d ' ')"
 
 echo "=============================================="

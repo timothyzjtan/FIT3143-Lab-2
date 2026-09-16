@@ -19,15 +19,20 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BIN="$REPO_ROOT/lab-2/task1"
-OUT_DIR="$REPO_ROOT/bench/results"
+OUT_DIR="${OUT_DIR:-$REPO_ROOT/bench/results}"
 SCRATCH="$(mktemp -d)"
 trap 'rm -rf "$SCRATCH"' EXIT
+
+# Launcher prefix; the rank count is appended. Default is Open MPI's mpirun
+# (the Docker path). Under SLURM mpirun cannot spawn orted on the compute
+# nodes, so the sbatch scripts set LAUNCH="srun --mpi=pmix -n".
+LAUNCH="${LAUNCH:-mpirun --oversubscribe -np}"
 
 QUICK=0
 [ "${1:-}" = "--quick" ] && QUICK=1
 
 REPS=3
-FIXED_PROCS=8
+FIXED_PROCS="${FIXED_PROCS:-8}"
 CHUNK=4096
 # dynamic is the default scheme for the n- and P-sweeps: it measured best at
 # n=1e7 and is the only scheme that adapts to cores of differing speed, which
@@ -46,20 +51,20 @@ if [ "$QUICK" -eq 1 ]; then
     REPS=1; N_MIN=1000000; N_MAX=4000000; N_STEPS=3
     N_FIXED=2000000; PROC_LIST="1 2 4"
 else
-    PROC_LIST="1 2 3 4 5 6 7 8 9 10 12 14 16"
+    PROC_LIST="${PROC_LIST:-1 2 3 4 5 6 7 8 9 10 12 14 16}"
 fi
 
 [ -x "$BIN" ] || { echo "error: $BIN not built. Run: make -C lab-2" >&2; exit 1; }
 
 mkdir -p "$OUT_DIR"
-RESULTS="$OUT_DIR/mpi-$(date +%Y%m%d-%H%M%S).csv"
+RESULTS="$OUT_DIR/mpi-$(date +%Y%m%d-%H%M%S)${RUN_TAG:+-$RUN_TAG}.csv"
 echo "impl,n,procs,threads,prime_count,t_alloc,t_bcast,t_compute,t_comm,t_sort,t_io,t_total,imbalance,rep,sweep" > "$RESULTS"
 
 # run <sweep> <rep> <procs> <n> <scheme> [extra args...]
 run() {
     local sweep="$1" rep="$2" procs="$3" n="$4" scheme="$5"; shift 5
     local row
-    row="$(mpirun -np "$procs" "$BIN" "$n" --scheme "$scheme" --chunk "$CHUNK" \
+    row="$($LAUNCH "$procs" "$BIN" "$n" --scheme "$scheme" --chunk "$CHUNK" \
            --csv --out "$SCRATCH/out.txt" "$@")"
     echo "${row},${rep},${sweep}" >> "$RESULTS"
 }
@@ -68,6 +73,12 @@ LADDER="$(awk -v lo="$N_MIN" -v hi="$N_MAX" -v steps="$N_STEPS" 'BEGIN {
     for (i = 0; i < steps; i++)
         printf "%d\n", int(lo * exp((log(hi)-log(lo)) * i / (steps-1)) / 1000) * 1000
 }' | sort -n -u)"
+# LADDER_SLICE="from:to" keeps only that 1-indexed range of the ladder, so one
+# long sweep can be split across several jobs without changing any n value
+# (CAAS enforces a 30-minute wall limit). Empty = the whole ladder.
+if [ -n "${LADDER_SLICE:-}" ]; then
+    LADDER="$(echo "$LADDER" | sed -n "${LADDER_SLICE%%:*},${LADDER_SLICE##*:}p")"
+fi
 LADDER_COUNT="$(echo "$LADDER" | wc -l | tr -d ' ')"
 
 echo "=============================================="
