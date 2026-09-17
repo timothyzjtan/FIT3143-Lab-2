@@ -1,0 +1,89 @@
+job 136040 on student-caas-n14 (1 nodes, 1 tasks)
+started Thu Sep 17 15:30:38 AEST 2026
+==============================================
+ FIT3143 Lab 2 - baseline sweep
+ host cores : 16
+ reps       : 3
+ n values   : 18 (min 20000000, max 100000000)
+ results    : /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/baselines-20260917-153038-136039-t1.csv
+==============================================
+WARNING: only 18 distinct values of n - the specification
+         requires at least 30. Increase N_STEPS or widen the range.
+
+--- Sweep A: increasing n (threads fixed at 16) ---
+  n = 20000000
+  n = 21141000
+  n = 22347000
+  n = 23623000
+  n = 24971000
+  n = 26396000
+  n = 27902000
+  n = 29494000
+  n = 31178000
+  n = 32957000
+  n = 34838000
+  n = 36826000
+  n = 38927000
+  n = 41149000
+  n = 43497000
+  n = 45979000
+  n = 48603000
+  n = 51377000
+
+Done. 162 rows -> /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/baselines-20260917-153038-136039-t1.csv
+Median t_total per configuration:
+  openmp-dynamic-4096|20000000|16    n=3   median 0.4763 s
+  openmp-dynamic-4096|21141000|16    n=3   median 0.5415 s
+  openmp-dynamic-4096|22347000|16    n=3   median 0.5626 s
+  openmp-dynamic-4096|23623000|16    n=3   median 0.6357 s
+  openmp-dynamic-4096|24971000|16    n=3   median 0.6710 s
+  openmp-dynamic-4096|26396000|16    n=3   median 0.7031 s
+  openmp-dynamic-4096|27902000|16    n=3   median 0.8220 s
+  openmp-dynamic-4096|29494000|16    n=3   median 0.8309 s
+  openmp-dynamic-4096|31178000|16    n=3   median 0.8676 s
+  openmp-dynamic-4096|32957000|16    n=3   median 0.9243 s
+  openmp-dynamic-4096|34838000|16    n=3   median 1.0359 s
+  openmp-dynamic-4096|36826000|16    n=3   median 1.0461 s
+  openmp-dynamic-4096|38927000|16    n=3   median 1.1732 s
+  openmp-dynamic-4096|41149000|16    n=3   median 1.2889 s
+  openmp-dynamic-4096|43497000|16    n=3   median 1.3305 s
+  openmp-dynamic-4096|45979000|16    n=3   median 1.4498 s
+  openmp-dynamic-4096|48603000|16    n=3   median 1.5586 s
+  openmp-dynamic-4096|51377000|16    n=3   median 1.6567 s
+  pthreads|20000000|16               n=3   median 0.5875 s
+  pthreads|21141000|16               n=3   median 0.6477 s
+  pthreads|22347000|16               n=3   median 0.6972 s
+  pthreads|23623000|16               n=3   median 0.7687 s
+  pthreads|24971000|16               n=3   median 0.8081 s
+  pthreads|26396000|16               n=3   median 0.8732 s
+  pthreads|27902000|16               n=3   median 1.0521 s
+  pthreads|29494000|16               n=3   median 1.0510 s
+  pthreads|31178000|16               n=3   median 1.0963 s
+  pthreads|32957000|16               n=3   median 1.1582 s
+  pthreads|34838000|16               n=3   median 1.2745 s
+  pthreads|36826000|16               n=3   median 1.3490 s
+  pthreads|38927000|16               n=3   median 1.5058 s
+  pthreads|41149000|16               n=3   median 1.5996 s
+  pthreads|43497000|16               n=3   median 1.6965 s
+  pthreads|45979000|16               n=3   median 1.8356 s
+  pthreads|48603000|16               n=3   median 2.0055 s
+  pthreads|51377000|16               n=3   median 2.1239 s
+  serial|20000000|1                  n=3   median 5.4886 s
+  serial|21141000|1                  n=3   median 5.9379 s
+  serial|22347000|1                  n=3   median 6.4258 s
+  serial|23623000|1                  n=3   median 6.9578 s
+  serial|24971000|1                  n=3   median 7.5125 s
+  serial|26396000|1                  n=3   median 8.1542 s
+  serial|27902000|1                  n=3   median 8.8040 s
+  serial|29494000|1                  n=3   median 9.5247 s
+  serial|31178000|1                  n=3   median 10.3059 s
+  serial|32957000|1                  n=3   median 11.1283 s
+  serial|34838000|1                  n=3   median 12.0393 s
+  serial|36826000|1                  n=3   median 13.0005 s
+  serial|38927000|1                  n=3   median 14.0644 s
+  serial|41149000|1                  n=3   median 15.2332 s
+  serial|43497000|1                  n=3   median 16.4811 s
+  serial|45979000|1                  n=3   median 17.8355 s
+  serial|48603000|1                  n=3   median 19.3070 s
+  serial|51377000|1                  n=3   median 20.8657 s
+finished Thu Sep 17 15:43:13 AEST 2026

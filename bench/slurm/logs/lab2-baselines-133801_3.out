@@ -1,0 +1,53 @@
+job 133801 on student-caas-n07 (1 nodes, 1 tasks)
+started Thu Sep 17 02:53:13 AEST 2026
+==============================================
+ FIT3143 Lab 2 - baseline sweep
+ host cores : 16
+ reps       : 3
+ n values   : 30 (min 20000000, max 100000000)
+ results    : /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/baselines-20260917-025313-133801-t3.csv
+==============================================
+
+
+--- Sweep B: increasing threads (n fixed at 30000000) ---
+  threads = 1
+  threads = 2
+  threads = 4
+  threads = 6
+  threads = 8
+  threads = 10
+  threads = 12
+  threads = 14
+  threads = 16
+
+--- Sweep C: OpenMP schedule comparison (n=30000000, T=16) ---
+  schedule = static, chunk = 0
+  schedule = static, chunk = 4096
+  schedule = dynamic, chunk = 4096
+  schedule = guided, chunk = 0
+
+Done. 69 rows -> /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/baselines-20260917-025313-133801-t3.csv
+Median t_total per configuration:
+  openmp-dynamic-4096|30000000|1     n=3   median 9.7922 s
+  openmp-dynamic-4096|30000000|10    n=3   median 1.1815 s
+  openmp-dynamic-4096|30000000|12    n=3   median 1.0339 s
+  openmp-dynamic-4096|30000000|14    n=3   median 0.8952 s
+  openmp-dynamic-4096|30000000|16    n=6   median 0.8387 s
+  openmp-dynamic-4096|30000000|2     n=3   median 5.0163 s
+  openmp-dynamic-4096|30000000|4     n=3   median 2.6113 s
+  openmp-dynamic-4096|30000000|6     n=3   median 1.8193 s
+  openmp-dynamic-4096|30000000|8     n=3   median 1.4142 s
+  openmp-guided-0|30000000|16        n=3   median 0.8571 s
+  openmp-static-0|30000000|16        n=3   median 1.0680 s
+  openmp-static-4096|30000000|16     n=3   median 0.8480 s
+  pthreads|30000000|1                n=3   median 9.7443 s
+  pthreads|30000000|10               n=3   median 1.5096 s
+  pthreads|30000000|12               n=3   median 1.3340 s
+  pthreads|30000000|14               n=3   median 1.1461 s
+  pthreads|30000000|16               n=3   median 1.0384 s
+  pthreads|30000000|2                n=3   median 6.2235 s
+  pthreads|30000000|4                n=3   median 3.4305 s
+  pthreads|30000000|6                n=3   median 2.3742 s
+  pthreads|30000000|8                n=3   median 1.8489 s
+  serial|30000000|1                  n=3   median 9.7328 s
+finished Thu Sep 17 02:56:36 AEST 2026

@@ -1,0 +1,44 @@
+job 136044 on student-caas-n[06,11-13] (4 nodes, 64 tasks)
+started Thu Sep 17 15:38:40 AEST 2026
+==============================================
+ FIT3143 Lab 2 - Open MPI sweep
+ cores    : 16   reps: 3   scheme: blockcyclic
+ n values : 30 (20000000 .. 100000000)
+ results  : /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/mpi-20260917-153840-136044-t3.csv
+==============================================
+
+--- Sweep B: increasing processes (n=100000000, scheme=blockcyclic) ---
+  P = 1
+srun: Warning: can't run 1 processes on 4 nodes, setting nnodes to 1
+srun: Warning: can't run 1 processes on 4 nodes, setting nnodes to 1
+srun: Warning: can't run 1 processes on 4 nodes, setting nnodes to 1
+  P = 2
+srun: Warning: can't run 2 processes on 4 nodes, setting nnodes to 2
+srun: Warning: can't run 2 processes on 4 nodes, setting nnodes to 2
+srun: Warning: can't run 2 processes on 4 nodes, setting nnodes to 2
+  P = 4
+  P = 8
+  P = 12
+  P = 16
+  P = 24
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 24 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 24 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 24 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+  P = 32
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 32 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 32 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 32 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+  P = 48
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 48 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 48 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 48 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+  P = 64
+
+--- Sweep C: partitioning scheme comparison (n=100000000, P=16) ---
+  scheme = block
+  scheme = cyclic
+  scheme = blockcyclic
+  scheme = dynamic
+
+Done. 42 rows -> /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/mpi-20260917-153840-136044-t3.csv
+finished Thu Sep 17 15:47:18 AEST 2026

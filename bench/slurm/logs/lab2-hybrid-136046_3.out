@@ -1,0 +1,52 @@
+job 136046 on student-caas-n[02,11-13] (4 nodes, 64 tasks)
+started Thu Sep 17 15:47:18 AEST 2026
+==============================================
+ FIT3143 Lab 2 - hybrid MPI+OpenMP sweep
+ cores    : 16   reps: 3   scheme: blockcyclic
+ fixed    : P=4 T=16 (64 workers)
+ n values : 30 (20000000 .. 100000000)
+ results  : /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/hybrid-20260917-154718-136046-t3.csv
+==============================================
+
+--- Sweep B: P x T grid (n=100000000, scheme=blockcyclic) ---
+  P = 1  T = 16  (workers = 16)
+srun: Warning: can't run 1 processes on 4 nodes, setting nnodes to 1
+srun: Warning: can't run 1 processes on 4 nodes, setting nnodes to 1
+srun: Warning: can't run 1 processes on 4 nodes, setting nnodes to 1
+  P = 2  T = 8  (workers = 16)
+srun: Warning: can't run 2 processes on 4 nodes, setting nnodes to 2
+srun: Warning: can't run 2 processes on 4 nodes, setting nnodes to 2
+srun: Warning: can't run 2 processes on 4 nodes, setting nnodes to 2
+  P = 4  T = 4  (workers = 16)
+  P = 8  T = 2  (workers = 16)
+  P = 16  T = 1  (workers = 16)
+  P = 2  T = 16  (workers = 32)
+srun: Warning: can't run 2 processes on 4 nodes, setting nnodes to 2
+srun: Warning: can't run 2 processes on 4 nodes, setting nnodes to 2
+srun: Warning: can't run 2 processes on 4 nodes, setting nnodes to 2
+  P = 4  T = 8  (workers = 32)
+  P = 8  T = 4  (workers = 32)
+  P = 16  T = 2  (workers = 32)
+  P = 32  T = 1  (workers = 32)
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 32 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 32 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 32 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+  P = 4  T = 16  (workers = 64)
+  P = 8  T = 8  (workers = 64)
+  P = 16  T = 4  (workers = 64)
+  P = 32  T = 2  (workers = 64)
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 32 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 32 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+srun: Warning: can't honor --ntasks-per-node set to 16 which doesn't match the requested tasks 32 with the number of requested nodes 4. Ignoring --ntasks-per-node.
+  P = 64  T = 1  (workers = 64)
+  P = 4  T = 1  (workers = 4)
+  P = 4  T = 2  (workers = 8)
+  P = 4  T = 8  (workers = 32)
+
+--- Sweep C: scheme comparison (n=100000000, P=4 T=16) ---
+  scheme = block
+  scheme = blockcyclic
+  scheme = dynamic
+
+Done. 63 rows -> /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/hybrid-20260917-154718-136046-t3.csv
+finished Thu Sep 17 15:52:38 AEST 2026

@@ -1,0 +1,28 @@
+job 136060 on student-caas-n[07-10] (4 nodes, 64 tasks)
+started Thu Sep 17 15:34:34 AEST 2026
+==============================================
+ FIT3143 Lab 2 - Open MPI sweep
+ cores    : 16   reps: 3   scheme: blockcyclic
+ n values : 15 (20000000 .. 100000000)
+ results  : /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/mpi-20260917-153434-136044-t2.csv
+==============================================
+
+--- Sweep A: increasing n (P=16, scheme=blockcyclic) ---
+  n = 45979000
+  n = 48603000
+  n = 51377000
+  n = 54309000
+  n = 57408000
+  n = 60684000
+  n = 64147000
+  n = 67808000
+  n = 71677000
+  n = 75768000
+  n = 80092000
+  n = 84662000
+  n = 89494000
+  n = 94601000
+  n = 100000000
+
+Done. 45 rows -> /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/mpi-20260917-153434-136044-t2.csv
+finished Thu Sep 17 15:45:24 AEST 2026

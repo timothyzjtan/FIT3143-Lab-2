@@ -1,8 +1,10 @@
-bench/results/
+# compiled binaries (Linux ARM64, built inside Docker) — rebuild with make
 week-4-lab-1/task1
 week-4-lab-1/task2
 week-4-lab-1/task3
+lab-2/task1
+lab-2/task2
+# per-run outputs (tens of MB at n=1e8)
 *_primes_output.txt
-.DS_Store
-bench/slurm/logs/
 bench/slurm/scratch/
+.DS_Store

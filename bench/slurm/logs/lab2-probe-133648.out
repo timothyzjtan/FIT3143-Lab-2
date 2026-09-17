@@ -1,0 +1,63 @@
+job 133648 on student-caas-n[01-02] (2 nodes, 4 tasks)
+started Thu Sep 17 01:37:11 AEST 2026
+--- srun --mpi=pmi2
+--------------------------------------------------------------------------
+WARNING: Open MPI will create a shared memory backing file in a
+directory that appears to be mounted on a network filesystem.
+Creating the shared memory backup file on a network file system, such
+as NFS or Lustre is not recommended -- it may cause excessive network
+traffic to your file servers and/or cause shared memory traffic in
+Open MPI to be much slower than expected.
+
+You may want to check what the typical temporary directory is on your
+node.  Possible sources of the location of this temporary directory
+include the $TEMPDIR, $TEMP, and $TMP environment variables.
+
+Note, too, that system administrators can set a list of filesystems
+where Open MPI is disallowed from creating temporary files by setting
+the MCA parameter "orte_no_session_dir".
+
+  Local host: student-caas-n01
+  Filename:   /srv/home/ttan0101/FIT3143-Lab-2/bench/slurm/scratch/ompi.student-caas-n01.876377/jf.2576/0/shared_mem_cuda_pool.student-caas-n01
+
+--------------------------------------------------------------------------
+WARNING: Open MPI will create a shared memory backing file in a
+directory that appears to be mounted on a network filesystem.
+Creating the shared memory backup file on a network file system, such
+as NFS or Lustre is not recommended -- it may cause excessive network
+traffic to your file servers and/or cause shared memory traffic in
+Open MPI to be much slower than expected.
+
+You may want to check what the typical temporary directory is on your
+node.  Possible sources of the location of this temporary directory
+include the $TEMPDIR, $TEMP, and $TMP environment variables.
+
+Note, too, that system administrators can set a list of filesystems
+where Open MPI is disallowed from creating temporary files by setting
+the MCA parameter "orte_no_session_dir".
+
+  Local host: student-caas-n02
+  Filename:   /srv/home/ttan0101/FIT3143-Lab-2/bench/slurm/scratch/ompi.student-caas-n02.876377/jf.2576/0/shared_mem_cuda_pool.student-caas-n02
+
+You can set the MCA paramter shmem_mmap_enable_nfs_warning to 0 to
+disable this message.
+--------------------------------------------------------------------------
+You can set the MCA paramter shmem_mmap_enable_nfs_warning to 0 to
+disable this message.
+--------------------------------------------------------------------------
+mpi-block,1000000,4,1,78498,0.000038,0.000029,0.026599,0.002389,0.000000,0.011547,0.063015,2.301049
+  pmi2: OK (1s)
+--- srun --mpi=pmix_v3
+srun: forcing job termination
+srun: got SIGCONT
+srun: launch/slurm: launch_p_step_launch: StepId=133648.1 aborted before step completely launched.
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: Timed out waiting for job step to complete
+  pmix_v3: FAILED/HUNG (107s)
+--- srun --mpi=pmix
+srun: Cancelled pending job step with signal 15
+srun: error: Unable to create step for job 133648: Job/step already completing or completed
+  pmix: FAILED/HUNG (75s)
+--- mpirun
+  mpirun: FAILED
+finished Thu Sep 17 01:41:14 AEST 2026

@@ -1,0 +1,26 @@
+job 136043 on student-caas-n05 (1 nodes, 1 tasks)
+started Thu Sep 17 15:30:38 AEST 2026
+==============================================
+ FIT3143 Lab 2 - baseline sweep
+ host cores : 16
+ reps       : 3
+ n values   : 30 (min 20000000, max 100000000)
+ results    : /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/baselines-20260917-153038-136039-t4.csv
+==============================================
+
+
+--- Sweep B: increasing threads (n fixed at 100000000) ---
+  threads = 1
+  threads = 2
+  threads = 4
+
+Done. 21 rows -> /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/baselines-20260917-153038-136039-t4.csv
+Median t_total per configuration:
+  openmp-dynamic-4096|100000000|1    n=3   median 53.8545 s
+  openmp-dynamic-4096|100000000|2    n=3   median 27.3479 s
+  openmp-dynamic-4096|100000000|4    n=3   median 14.0556 s
+  pthreads|100000000|1               n=3   median 53.6925 s
+  pthreads|100000000|2               n=3   median 34.2515 s
+  pthreads|100000000|4               n=3   median 18.6484 s
+  serial|100000000|1                 n=3   median 53.7666 s
+finished Thu Sep 17 15:43:28 AEST 2026

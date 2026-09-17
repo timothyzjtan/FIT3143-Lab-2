@@ -1,0 +1,31 @@
+job 136118 on student-caas-n[03-05,14] (4 nodes, 64 tasks)
+started Thu Sep 17 15:44:15 AEST 2026
+==============================================
+ FIT3143 Lab 2 - hybrid MPI+OpenMP sweep
+ cores    : 16   reps: 3   scheme: blockcyclic
+ fixed    : P=4 T=16 (64 workers)
+ n values : 15 (20000000 .. 100000000)
+ results  : /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/hybrid-20260917-154415-136046-t1.csv
+==============================================
+
+--- Sweep A: increasing n (P=4 T=16, scheme=blockcyclic) ---
+  n = 20000000
+  n = 21141000
+  n = 22347000
+  n = 23623000
+  n = 24971000
+  n = 26396000
+  n = 27902000
+  n = 29494000
+  n = 31178000
+srun: Job 136118 step creation temporarily disabled, retrying (Requested nodes are busy)
+srun: Step created for job 136118
+  n = 32957000
+  n = 34838000
+  n = 36826000
+  n = 38927000
+  n = 41149000
+  n = 43497000
+
+Done. 45 rows -> /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/hybrid-20260917-154415-136046-t1.csv
+finished Thu Sep 17 15:47:25 AEST 2026

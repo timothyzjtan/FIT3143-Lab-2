@@ -1,0 +1,201 @@
+job 133661 on student-caas-n[12-13] (2 nodes, 8 tasks)
+started Thu Sep 17 01:54:12 AEST 2026
+--- nodes in use
+      4 student-caas-n12
+      4 student-caas-n13
+--- serial reference (n=10000000)
+serial,10000000,1,1,664579,0.000051,2.013007,0.000000,0.062075,2.075136
+--- task1, 8 ranks across 2 nodes
+--------------------------------------------------------------------------
+WARNING: Open MPI will create a shared memory backing file in a
+directory that appears to be mounted on a network filesystem.
+Creating the shared memory backup file on a network file system, such
+as NFS or Lustre is not recommended -- it may cause excessive network
+traffic to your file servers and/or cause shared memory traffic in
+Open MPI to be much slower than expected.
+
+You may want to check what the typical temporary directory is on your
+node.  Possible sources of the location of this temporary directory
+include the $TEMPDIR, $TEMP, and $TMP environment variables.
+
+Note, too, that system administrators can set a list of filesystems
+where Open MPI is disallowed from creating temporary files by setting
+the MCA parameter "orte_no_session_dir".
+
+  Local host: student-caas-n13
+  Filename:   /srv/home/ttan0101/FIT3143-Lab-2/bench/slurm/scratch/ompi.student-caas-n13.876377/jf.2589/1/shared_mem_cuda_pool.student-caas-n13
+
+--------------------------------------------------------------------------
+WARNING: Open MPI will create a shared memory backing file in a
+directory that appears to be mounted on a network filesystem.
+Creating the shared memory backup file on a network file system, such
+as NFS or Lustre is not recommended -- it may cause excessive network
+traffic to your file servers and/or cause shared memory traffic in
+Open MPI to be much slower than expected.
+
+You may want to check what the typical temporary directory is on your
+node.  Possible sources of the location of this temporary directory
+include the $TEMPDIR, $TEMP, and $TMP environment variables.
+
+Note, too, that system administrators can set a list of filesystems
+where Open MPI is disallowed from creating temporary files by setting
+the MCA parameter "orte_no_session_dir".
+
+  Local host: student-caas-n12
+  Filename:   /srv/home/ttan0101/FIT3143-Lab-2/bench/slurm/scratch/ompi.student-caas-n12.876377/jf.2589/1/shared_mem_cuda_pool.student-caas-n12
+
+You can set the MCA paramter shmem_mmap_enable_nfs_warning to 0 to
+disable this message.
+--------------------------------------------------------------------------
+You can set the MCA paramter shmem_mmap_enable_nfs_warning to 0 to
+disable this message.
+--------------------------------------------------------------------------
+mpi-block,10000000,8,1,664579,0.000042,0.000022,0.345197,0.008687,0.000000,0.071110,0.465258,3.196687
+  ok   task1 block
+--------------------------------------------------------------------------
+WARNING: Open MPI will create a shared memory backing file in a
+directory that appears to be mounted on a network filesystem.
+Creating the shared memory backup file on a network file system, such
+as NFS or Lustre is not recommended -- it may cause excessive network
+traffic to your file servers and/or cause shared memory traffic in
+Open MPI to be much slower than expected.
+
+You may want to check what the typical temporary directory is on your
+node.  Possible sources of the location of this temporary directory
+include the $TEMPDIR, $TEMP, and $TMP environment variables.
+
+Note, too, that system administrators can set a list of filesystems
+where Open MPI is disallowed from creating temporary files by setting
+the MCA parameter "orte_no_session_dir".
+
+  Local host: student-caas-n13
+  Filename:   /srv/home/ttan0101/FIT3143-Lab-2/bench/slurm/scratch/ompi.student-caas-n13.876377/jf.2589/2/shared_mem_cuda_pool.student-caas-n13
+
+--------------------------------------------------------------------------
+WARNING: Open MPI will create a shared memory backing file in a
+directory that appears to be mounted on a network filesystem.
+Creating the shared memory backup file on a network file system, such
+as NFS or Lustre is not recommended -- it may cause excessive network
+traffic to your file servers and/or cause shared memory traffic in
+Open MPI to be much slower than expected.
+
+You may want to check what the typical temporary directory is on your
+node.  Possible sources of the location of this temporary directory
+include the $TEMPDIR, $TEMP, and $TMP environment variables.
+
+Note, too, that system administrators can set a list of filesystems
+where Open MPI is disallowed from creating temporary files by setting
+the MCA parameter "orte_no_session_dir".
+
+  Local host: student-caas-n12
+  Filename:   /srv/home/ttan0101/FIT3143-Lab-2/bench/slurm/scratch/ompi.student-caas-n12.876377/jf.2589/2/shared_mem_cuda_pool.student-caas-n12
+
+You can set the MCA paramter shmem_mmap_enable_nfs_warning to 0 to
+disable this message.
+--------------------------------------------------------------------------
+You can set the MCA paramter shmem_mmap_enable_nfs_warning to 0 to
+disable this message.
+--------------------------------------------------------------------------
+mpi-cyclic,10000000,8,1,664579,0.000060,0.000017,0.254021,0.014729,0.036249,0.080445,0.429894,1.002431
+  ok   task1 cyclic
+--------------------------------------------------------------------------
+WARNING: Open MPI will create a shared memory backing file in a
+directory that appears to be mounted on a network filesystem.
+Creating the shared memory backup file on a network file system, such
+as NFS or Lustre is not recommended -- it may cause excessive network
+traffic to your file servers and/or cause shared memory traffic in
+Open MPI to be much slower than expected.
+
+You may want to check what the typical temporary directory is on your
+node.  Possible sources of the location of this temporary directory
+include the $TEMPDIR, $TEMP, and $TMP environment variables.
+
+Note, too, that system administrators can set a list of filesystems
+where Open MPI is disallowed from creating temporary files by setting
+the MCA parameter "orte_no_session_dir".
+
+  Local host: student-caas-n13
+  Filename:   /srv/home/ttan0101/FIT3143-Lab-2/bench/slurm/scratch/ompi.student-caas-n13.876377/jf.2589/3/shared_mem_cuda_pool.student-caas-n13
+
+--------------------------------------------------------------------------
+WARNING: Open MPI will create a shared memory backing file in a
+directory that appears to be mounted on a network filesystem.
+Creating the shared memory backup file on a network file system, such
+as NFS or Lustre is not recommended -- it may cause excessive network
+traffic to your file servers and/or cause shared memory traffic in
+Open MPI to be much slower than expected.
+
+You may want to check what the typical temporary directory is on your
+node.  Possible sources of the location of this temporary directory
+include the $TEMPDIR, $TEMP, and $TMP environment variables.
+
+Note, too, that system administrators can set a list of filesystems
+where Open MPI is disallowed from creating temporary files by setting
+the MCA parameter "orte_no_session_dir".
+
+  Local host: student-caas-n12
+  Filename:   /srv/home/ttan0101/FIT3143-Lab-2/bench/slurm/scratch/ompi.student-caas-n12.876377/jf.2589/3/shared_mem_cuda_pool.student-caas-n12
+
+You can set the MCA paramter shmem_mmap_enable_nfs_warning to 0 to
+disable this message.
+--------------------------------------------------------------------------
+You can set the MCA paramter shmem_mmap_enable_nfs_warning to 0 to
+disable this message.
+--------------------------------------------------------------------------
+mpi-blockcyclic,10000000,8,1,664579,0.000040,0.000015,0.362606,0.012448,0.029060,0.065018,0.507311,1.449336
+  ok   task1 blockcyclic
+--------------------------------------------------------------------------
+WARNING: Open MPI will create a shared memory backing file in a
+directory that appears to be mounted on a network filesystem.
+Creating the shared memory backup file on a network file system, such
+as NFS or Lustre is not recommended -- it may cause excessive network
+traffic to your file servers and/or cause shared memory traffic in
+Open MPI to be much slower than expected.
+
+You may want to check what the typical temporary directory is on your
+node.  Possible sources of the location of this temporary directory
+include the $TEMPDIR, $TEMP, and $TMP environment variables.
+
+Note, too, that system administrators can set a list of filesystems
+where Open MPI is disallowed from creating temporary files by setting
+the MCA parameter "orte_no_session_dir".
+
+  Local host: student-caas-n12
+  Filename:   /srv/home/ttan0101/FIT3143-Lab-2/bench/slurm/scratch/ompi.student-caas-n12.876377/jf.2589/4/shared_mem_cuda_pool.student-caas-n12
+
+--------------------------------------------------------------------------
+WARNING: Open MPI will create a shared memory backing file in a
+directory that appears to be mounted on a network filesystem.
+Creating the shared memory backup file on a network file system, such
+as NFS or Lustre is not recommended -- it may cause excessive network
+traffic to your file servers and/or cause shared memory traffic in
+Open MPI to be much slower than expected.
+
+You may want to check what the typical temporary directory is on your
+node.  Possible sources of the location of this temporary directory
+include the $TEMPDIR, $TEMP, and $TMP environment variables.
+
+Note, too, that system administrators can set a list of filesystems
+where Open MPI is disallowed from creating temporary files by setting
+the MCA parameter "orte_no_session_dir".
+
+  Local host: student-caas-n13
+  Filename:   /srv/home/ttan0101/FIT3143-Lab-2/bench/slurm/scratch/ompi.student-caas-n13.876377/jf.2589/4/shared_mem_cuda_pool.student-caas-n13
+
+You can set the MCA paramter shmem_mmap_enable_nfs_warning to 0 to
+disable this message.
+--------------------------------------------------------------------------
+You can set the MCA paramter shmem_mmap_enable_nfs_warning to 0 to
+disable this message.
+--------------------------------------------------------------------------
+mpi-dynamic,10000000,8,1,664579,0.000037,0.000009,0.349185,0.009810,0.028398,0.070920,0.498541,1.004355
+  ok   task1 dynamic
+--- task2 hybrid, 2 ranks x 4 threads
+hybrid-block,10000000,2,4,664579,0.000040,0.000044,0.314195,0.015201,0.004623,0.000000,0.085842,0.438518,1.643064,8
+  ok   task2 block
+hybrid-blockcyclic,10000000,2,4,664579,0.000041,0.000015,0.260957,0.014666,0.006513,0.025177,0.079647,0.397409,1.036447,8
+  ok   task2 blockcyclic
+hybrid-dynamic,10000000,2,4,664579,0.000039,0.000015,0.576561,0.027652,0.007692,0.024146,0.071262,0.727703,1.000131,8
+  ok   task2 dynamic
+finished Thu Sep 17 01:54:22 AEST 2026
+SMOKE PASS
