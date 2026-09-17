@@ -4,7 +4,5 @@ week-4-lab-1/task2
 week-4-lab-1/task3
 *_primes_output.txt
 .DS_Store
-bench/results-caas/
 bench/slurm/logs/
 bench/slurm/scratch/
-bench/analysis-caas/
