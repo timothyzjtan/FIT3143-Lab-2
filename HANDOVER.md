@@ -6,10 +6,8 @@ the **Task 4 report are both complete against the cluster data**. The only
 substantial work left is the Task 4 *presentation* (slides) and the
 placeholders/exports.
 
-> **Uncommitted right now:** `lab-2/task4-documentation.md` (rewritten),
-> `bench/report.py` (figure captions now derived from the data),
-> `bench/analysis-caas/figures/fig5.svg` + `report.html` (regenerated with the
-> corrected label). Commit or review before pulling.
+> **Uncommitted right now:** nothing (apart from two stray JPEGs in the
+> repo root).
 
 Repo-level orientation (directories, sweep knobs, CSV schemas, operational
 traps) lives in `CLAUDE.md`. This file tracks only *deliverable status*.
@@ -27,7 +25,7 @@ traps) lives in `CLAUDE.md`. This file tracks only *deliverable status*.
 | `bench/analysis-caas/` | Regenerated: `report.html` + 8 SVGs |
 | `lab-2/task3-performance-evaluation.md` | **Complete** — 531 lines, all six spec axes, verified arithmetic |
 | `bench/slurm/env.sh` | OpenMPI module pinned to the documented name |
-| `lab-2/task4-documentation.md` | **Complete** — rewritten against CAAS data, 805 lines, 3 placeholders remain *(uncommitted)* |
+| `lab-2/task4-documentation.md` | **Complete** — rewritten against CAAS data, 553 lines, 3 placeholders remain |
 | `lab-2/task4-presentation.md` | **Stale** — pre-cluster numbers, 3 placeholders |
 
 ### Headline results (CAAS, 4 nodes × 16 cores, n = 1e8)
