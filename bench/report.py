@@ -453,10 +453,11 @@ def main():
                           "speedup vs serial", yfmt=lambda v: f"{v:g}×")
     figs["fig3"] = svg
     body.append("<h2>3. Speedup against degree of parallelism</h2>")
-    body.append('<p class="note">n fixed at 30M. The hybrid reaches one worker '
+    n_b = fmt_n(B[0]["n"]) if B else "?"
+    w_max = max((r["workers"] for r in B), default=0)
+    body.append(f'<p class="note">n fixed at {n_b}. The hybrid reaches one worker '
                 'count by several P×T splits; the fastest split is plotted and '
-                'named in the tooltip. The host has 10 cores, so nothing beyond '
-                '10 workers can add real parallelism.</p>')
+                f'named in the tooltip. Worker counts run to {w_max}.</p>')
     body.append(legend([f for f, _ in s3]))
     body.append(f'<figure>{svg.replace("<svg ", f"<svg data-pts={chr(34)}{esc(pts)}{chr(34)} ", 1)}</figure>')
     body.append('<details><summary>Table view — every P×T split measured</summary>' + table(
@@ -488,12 +489,16 @@ def main():
 
     # ---- Figure 5: scheme comparison ----
     if C:
+        n_c = fmt_n(C[0]["n"])
+        w_c = sorted({r["workers"] for r in C})
+        w_lab = "/".join(str(w) for w in w_c) + " workers"
         figs["fig5"] = bar_chart("fig5", C, "speedup_empirical",
-                                 "speedup vs serial (n = 30M, 8 workers)",
+                                 f"speedup vs serial (n = {n_c}, {w_lab})",
                                  fmt=lambda v: f"{v:.2f}×")
         body.append("<h2>5. Partitioning scheme and schedule</h2>")
-        body.append('<p class="note">All at n = 30M and 8 workers, so the only '
-                    'variable is how the candidate range is divided.</p>')
+        body.append(f'<p class="note">All at n = {n_c}; MPI schemes at '
+                    f'{w_c[0]} workers, hybrid schemes at {w_c[-1]}. Within each '
+                    'family the only variable is how the candidate range is divided.</p>')
         body.append(f'<figure>{figs["fig5"]}</figure>')
 
     # ---- Figures 6 & 7: measured against theoretical (Task 3) ----------
@@ -541,7 +546,7 @@ def main():
         "fig6", "mpi",
         "6. Task 1 (Open MPI): measured against theoretical speedup",
         "MPI processes",
-        "n fixed at 30M. Amdahl's serial fraction is measured on the serial "
+        f"n fixed at {fmt_n(B[0]['n']) if B else '?'}. Amdahl's serial fraction is measured on the serial "
         "run at the same n - the fixed-workload experiment the law assumes - "
         "so its curve is a ceiling that does not move as processes are added. "
         "Gustafson's fraction is measured on each parallel run itself, the "
@@ -585,16 +590,15 @@ def main():
                               yfmt=lambda v: f"{v:g}x")
         figs["fig8"] = svg
         body.append("<h2>8. Threads per rank at a fixed process count</h2>")
-        body.append('<p class="note">n fixed at 30M, MPI ranks fixed at '
+        body.append(f'<p class="note">n fixed at {fmt_n(hyb_p[0]["n"])}, MPI ranks fixed at '
                     f'{FIXED_P}. Task 1 has no threads, so it is flat at its '
                     f'{FIXED_P}-process speedup; the hybrid adds OpenMP threads '
                     'inside each of those same ranks. Total workers is ranks x '
-                    'threads, so the right-hand end of this axis is already '
-                    'oversubscribing the 10-core host.</p>')
+                    'threads.</p>')
         body.append(legend([k for k, _ in s8]))
         body.append('<figure>' + svg.replace(
             "<svg ", f"<svg data-pts={chr(34)}{esc(pts)}{chr(34)} ", 1) + '</figure>')
-        body.append('<details><summary>Table view - every P x T split at n = 30M'
+        body.append(f'<details><summary>Table view - every P x T split at n = {fmt_n(hyb_p[0]["n"])}'
                     '</summary>' + table(
             ["P", "T", "workers", "impl", "total (s)", "speedup", "efficiency"],
             [[r["procs"], r["threads"], r["workers"], r["impl"],
@@ -608,7 +612,7 @@ def main():
     page = (f"<title>{title}</title>{CSS}<div class=\"wrap\">"
             f"<h1>{title}</h1>"
             f'<p class="sub">Trial-division prime search under five execution '
-            f'models, measured on a 10-core host. The algorithm is identical in '
+            f'models. The algorithm is identical in '
             f'every implementation, so the differences are parallelism, not '
             f'arithmetic.</p>'
             + "".join(body) + "</div>" + JS)

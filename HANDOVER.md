@@ -1,15 +1,15 @@
 # Handover — FIT3143 Lab 2
 
-**Status as of 2026-09-17 (later).** Code complete and verified on the cluster.
-The cluster sweeps have run and been analysed. Task 3's write-up is now
-**complete against all six axes the specification lists** (empirical and
-theoretical, each over n / processes / threads-per-process). **The two Task 4
-documents still carry pre-cluster numbers and are the only substantial work
-left.**
+**Status as of 2026-09-17 (evening).** Code complete and verified on the
+cluster. The cluster sweeps have run and been analysed. Task 3's write-up and
+the **Task 4 report are both complete against the cluster data**. The only
+substantial work left is the Task 4 *presentation* (slides) and the
+placeholders/exports.
 
-> **Uncommitted right now:** `bench/slurm/env.sh` (+13/−2) and
-> `lab-2/task3-performance-evaluation.md` (+237/−25). Commit or review before
-> pulling.
+> **Uncommitted right now:** `lab-2/task4-documentation.md` (rewritten),
+> `bench/report.py` (figure captions now derived from the data),
+> `bench/analysis-caas/figures/fig5.svg` + `report.html` (regenerated with the
+> corrected label). Commit or review before pulling.
 
 Repo-level orientation (directories, sweep knobs, CSV schemas, operational
 traps) lives in `CLAUDE.md`. This file tracks only *deliverable status*.
@@ -25,10 +25,10 @@ traps) lives in `CLAUDE.md`. This file tracks only *deliverable status*.
 | Correctness | Verified on 2 nodes: all 7 scheme configurations matched serial byte-for-byte (664,579 primes at n=1e7) |
 | Cluster sweeps | Done. 11/11 array tasks COMPLETED, no errors, 30 distinct *n* |
 | `bench/analysis-caas/` | Regenerated: `report.html` + 8 SVGs |
-| `lab-2/task3-performance-evaluation.md` | **Complete** — 531 lines, all six spec axes, verified arithmetic *(uncommitted)* |
-| `bench/slurm/env.sh` | OpenMPI module pinned to the documented name *(uncommitted)* |
-| `lab-2/task4-documentation.md` | **Stale** — pre-cluster numbers, 3 placeholders |
-| `lab-2/task4-presentation.md` | **Stale** — same |
+| `lab-2/task3-performance-evaluation.md` | **Complete** — 531 lines, all six spec axes, verified arithmetic |
+| `bench/slurm/env.sh` | OpenMPI module pinned to the documented name |
+| `lab-2/task4-documentation.md` | **Complete** — rewritten against CAAS data, 805 lines, 3 placeholders remain *(uncommitted)* |
+| `lab-2/task4-presentation.md` | **Stale** — pre-cluster numbers, 3 placeholders |
 
 ### Headline results (CAAS, 4 nodes × 16 cores, n = 1e8)
 
@@ -54,31 +54,27 @@ there is no trade-off to defend.
 
 ## 2. Next steps, in order
 
-**1. Rewrite `lab-2/task4-documentation.md` (604 lines).** Largest remaining
-job. Every quoted speedup, the §3.2 scheme table and the Discussion all predate
-the cluster. Three specific corrections beyond the numbers:
+**1. ~~Rewrite `lab-2/task4-documentation.md`.~~ DONE (2026-09-17 evening).**
+Every number now comes from `bench/analysis-caas/summary.csv` and agrees with
+`task3-performance-evaluation.md` where the two overlap. Open MPI version
+corrected to 4.1.5; the "two processes slower than one" passage is gone (it
+was the idle `dynamic` master); the laptop run survives only as a labelled
+qualitative note on oversubscription. Figures point at
+`bench/analysis-caas/figures/`. While doing this, `bench/report.py`'s
+hardcoded "n = 30M" / "10-core host" captions were replaced with values
+derived from the data and `fig5.svg` regenerated (its y-axis label had read
+"n = 30M, 8 workers" against CAAS data at n = 100M).
 
-- §2.1 says "Open MPI 5.x". It is **4.1.6** in Docker and **4.1.5** on CAAS.
-  The v5.0.x man pages the spec links are the wrong version for us — v4.1 docs
-  are at `open-mpi.org/doc/v4.1/`, and say "socket" where v5 says "package".
-- §2.1's "30 distinct values of *n*" is now exactly right for the CAAS data
-  (it was 31 on the old Mac run). Leave as-is, but re-point it at the cluster.
-- The Discussion blames "two processes are slower than one" on communication
-  overhead. That result **no longer exists** — it was the idle master under
-  `dynamic`. P=2 now gives 1.96×. Delete the passage rather than rewording it.
-
-Use `lab-2/task3-performance-evaluation.md` as the model; its numbers are
-already verified against `bench/analysis-caas/summary.csv`.
-
-**2. Rewrite `lab-2/task4-presentation.md` (370 lines).** Same numbers, cut to
-a 6-7 minute delivery. The rubric's HD band requires 6-7 min and explicitly
+**2. Rewrite `lab-2/task4-presentation.md` (370 lines).** Now the largest
+remaining job. Take the numbers from `task4-documentation.md` §3–§7, cut to a
+6-7 minute delivery. The rubric's HD band requires 6-7 min and explicitly
 rewards parallel-computing terminology over general computing terms.
 
 **3. ~~Decide how the figures ship.~~ RESOLVED** by commit `3525258` —
 `bench/analysis-caas/` is now tracked (10 files, including all 8 SVGs), so the
 Task 3 document's references resolve for a marker.
 
-**4. Fill the placeholders.** 3 in `task4-documentation.md` (lines 5, 6, 560),
+**4. Fill the placeholders.** 3 in `task4-documentation.md` (lines 5, 6 and Appendix A),
 3 in `task4-presentation.md`: names, student IDs, `@student.monash.edu`
 addresses, and the AI declaration. The submission checklist wants the AI
 declaration as a **separate PDF** if it is not inline.
