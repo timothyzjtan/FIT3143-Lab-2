@@ -1,0 +1,77 @@
+job 134179 on student-caas-n10 (1 nodes, 1 tasks)
+started Thu Sep 17 02:53:10 AEST 2026
+==============================================
+ FIT3143 Lab 2 - baseline sweep
+ host cores : 16
+ reps       : 3
+ n values   : 15 (min 20000000, max 100000000)
+ results    : /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/baselines-20260917-025310-133801-t1.csv
+==============================================
+WARNING: only 15 distinct values of n - the specification
+         requires at least 30. Increase N_STEPS or widen the range.
+
+--- Sweep A: increasing n (threads fixed at 16) ---
+  n = 20000000
+  n = 21141000
+  n = 22347000
+  n = 23623000
+  n = 24971000
+  n = 26396000
+  n = 27902000
+  n = 29494000
+  n = 31178000
+  n = 32957000
+  n = 34838000
+  n = 36826000
+  n = 38927000
+  n = 41149000
+  n = 43497000
+
+Done. 135 rows -> /srv/home/ttan0101/FIT3143-Lab-2/bench/results-caas/baselines-20260917-025310-133801-t1.csv
+Median t_total per configuration:
+  openmp-dynamic-4096|20000000|16    n=3   median 0.4888 s
+  openmp-dynamic-4096|21141000|16    n=3   median 0.5177 s
+  openmp-dynamic-4096|22347000|16    n=3   median 0.5929 s
+  openmp-dynamic-4096|23623000|16    n=3   median 0.6573 s
+  openmp-dynamic-4096|24971000|16    n=3   median 0.6531 s
+  openmp-dynamic-4096|26396000|16    n=3   median 0.7151 s
+  openmp-dynamic-4096|27902000|16    n=3   median 0.7427 s
+  openmp-dynamic-4096|29494000|16    n=3   median 0.8007 s
+  openmp-dynamic-4096|31178000|16    n=3   median 0.8961 s
+  openmp-dynamic-4096|32957000|16    n=3   median 0.9312 s
+  openmp-dynamic-4096|34838000|16    n=3   median 0.9751 s
+  openmp-dynamic-4096|36826000|16    n=3   median 1.0800 s
+  openmp-dynamic-4096|38927000|16    n=3   median 1.2031 s
+  openmp-dynamic-4096|41149000|16    n=3   median 1.2539 s
+  openmp-dynamic-4096|43497000|16    n=3   median 1.3623 s
+  pthreads|20000000|16               n=3   median 0.5925 s
+  pthreads|21141000|16               n=3   median 0.6443 s
+  pthreads|22347000|16               n=3   median 0.7081 s
+  pthreads|23623000|16               n=3   median 0.7768 s
+  pthreads|24971000|16               n=3   median 0.8717 s
+  pthreads|26396000|16               n=3   median 0.8841 s
+  pthreads|27902000|16               n=3   median 0.9374 s
+  pthreads|29494000|16               n=3   median 1.0012 s
+  pthreads|31178000|16               n=3   median 1.1158 s
+  pthreads|32957000|16               n=3   median 1.1742 s
+  pthreads|34838000|16               n=3   median 1.2908 s
+  pthreads|36826000|16               n=3   median 1.3918 s
+  pthreads|38927000|16               n=3   median 1.5019 s
+  pthreads|41149000|16               n=3   median 1.5731 s
+  pthreads|43497000|16               n=3   median 1.7408 s
+  serial|20000000|1                  n=3   median 5.4793 s
+  serial|21141000|1                  n=3   median 5.9317 s
+  serial|22347000|1                  n=3   median 6.4258 s
+  serial|23623000|1                  n=3   median 6.9837 s
+  serial|24971000|1                  n=3   median 7.5165 s
+  serial|26396000|1                  n=3   median 8.1171 s
+  serial|27902000|1                  n=3   median 8.7710 s
+  serial|29494000|1                  n=3   median 9.5057 s
+  serial|31178000|1                  n=3   median 10.3039 s
+  serial|32957000|1                  n=3   median 11.1213 s
+  serial|34838000|1                  n=3   median 12.0091 s
+  serial|36826000|1                  n=3   median 13.0205 s
+  serial|38927000|1                  n=3   median 14.1191 s
+  serial|41149000|1                  n=3   median 15.2683 s
+  serial|43497000|1                  n=3   median 16.4731 s
+finished Thu Sep 17 03:02:19 AEST 2026

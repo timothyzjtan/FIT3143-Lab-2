@@ -3,7 +3,7 @@
 #SBATCH --partition=defq
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=16
-#SBATCH --time=00:28:00
+#SBATCH --time=00:20:00
 #SBATCH --array=1-3
 #SBATCH --output=bench/slurm/logs/%x-%A_%a.out
 #
@@ -13,6 +13,7 @@
 set -euo pipefail
 source bench/slurm/env.sh
 
+export N_FIXED=100000000
 export LAUNCH="$LAUNCH_MPI"
 export FIXED_PROCS=16
 export PROC_LIST="1 2 4 8 12 16 24 32 48 64"

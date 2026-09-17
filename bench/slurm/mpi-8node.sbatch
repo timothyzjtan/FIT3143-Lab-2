@@ -10,6 +10,7 @@
 # not schedule in time.
 set -euo pipefail
 source bench/slurm/env.sh
+export N_FIXED=100000000
 export SWEEPS=B
 LAUNCH="$LAUNCH_MPI" PROC_LIST="64 96 128" bench/sweep-mpi.sh
 LAUNCH="$LAUNCH_HYBRID" GRID="8:16 16:8 32:4 128:1" bench/sweep-hybrid.sh
