@@ -31,21 +31,23 @@ LAUNCH="${LAUNCH:-mpirun --oversubscribe -np}"
 QUICK=0
 [ "${1:-}" = "--quick" ] && QUICK=1
 
-REPS=3
+REPS="${REPS:-3}"
 FIXED_PROCS="${FIXED_PROCS:-8}"
 CHUNK=4096
-# dynamic is the default scheme for the n- and P-sweeps: it measured best at
-# n=1e7 and is the only scheme that adapts to cores of differing speed, which
-# this host has (4 performance + 6 efficiency cores).
-MAIN_SCHEME=${MAIN_SCHEME:-dynamic}
+# blockcyclic is the default scheme for the n- and P-sweeps: it measured
+# fastest across the 20M-100M range these sweeps actually use (3.72x against
+# dynamic's 2.47x at n=1e8, P=8). Interleaving small chunks balances the
+# sqrt(k) cost gradient without spending a whole rank on coordination.
+# Sweep C still runs every scheme, so the comparison figure is unaffected.
+MAIN_SCHEME=${MAIN_SCHEME:-blockcyclic}
 SWEEPS="${SWEEPS:-A B C}"
 SCHEMES="block cyclic blockcyclic dynamic"
 
 # Same ladder as the baseline sweep so the two are directly comparable.
-N_MIN=20000000
-N_MAX=100000000
-N_STEPS=30
-N_FIXED=30000000
+N_MIN="${N_MIN:-20000000}"
+N_MAX="${N_MAX:-100000000}"
+N_STEPS="${N_STEPS:-30}"
+N_FIXED="${N_FIXED:-30000000}"
 
 if [ "$QUICK" -eq 1 ]; then
     REPS=1; N_MIN=1000000; N_MAX=4000000; N_STEPS=3

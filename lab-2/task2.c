@@ -142,7 +142,7 @@ static void usage(const char *prog) {
         "Usage: mpirun -np P %s <n> [options]\n"
         "  <n>             find primes strictly less than n\n"
         "  --threads T     OpenMP threads per MPI process (default 2)\n"
-        "  --scheme KIND   block | blockcyclic | dynamic (default dynamic)\n"
+        "  --scheme KIND   block | blockcyclic | dynamic (default blockcyclic)\n"
         "  --chunk N       candidates per chunk (default 4096)\n"
         "  --csv           emit one machine-readable CSV row\n"
         "  --out FILE      output file (default task2_hybrid_output.txt)\n",
@@ -169,8 +169,8 @@ int main(int argc, char *argv[]) {
 
     long n = 0, chunk = 4096;
     int nthreads = 2, csv_mode = 0;
-    scheme_t scheme = SCHEME_DYNAMIC;
-    const char *scheme_name = "dynamic";
+    scheme_t scheme = SCHEME_BLOCKCYCLIC;
+    const char *scheme_name = "blockcyclic";
     const char *out_path = "task2_hybrid_output.txt";
 
     int parse_error = 0;

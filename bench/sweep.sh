@@ -30,7 +30,7 @@ trap 'rm -rf "$SCRATCH"' EXIT
 QUICK=0
 [ "${1:-}" = "--quick" ] && QUICK=1
 
-REPS=3
+REPS="${REPS:-3}"
 FIXED_THREADS="${FIXED_THREADS:-8}"
 # SWEEPS selects which of A/B/C to run, mirroring sweep-mpi.sh/sweep-hybrid.sh,
 # so one sweep can be re-measured (or split across jobs) without redoing all.
@@ -44,13 +44,13 @@ SWEEPS="${SWEEPS:-A B C}"
 # n = 3e7 on this machine. Trial division costs ~n^1.5/ln n overall, so the
 # 1-second crossing is near n = 1.9e7; the ladder starts just above it at 2e7.
 # Re-measure and raise N_MIN on faster hardware.
-N_MIN=20000000
-N_MAX=100000000
-N_STEPS=30
+N_MIN="${N_MIN:-20000000}"
+N_MAX="${N_MAX:-100000000}"
+N_STEPS="${N_STEPS:-30}"
 
 # Fixed n for the thread and schedule sweeps: large enough to be well clear of
 # the noise floor, small enough that 16 thread counts x 3 reps stays quick.
-N_FIXED=30000000
+N_FIXED="${N_FIXED:-30000000}"
 
 if [ "$QUICK" -eq 1 ]; then
     REPS=1

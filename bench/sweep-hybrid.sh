@@ -29,9 +29,11 @@ trap 'rm -rf "$SCRATCH"' EXIT
 QUICK=0
 [ "${1:-}" = "--quick" ] && QUICK=1
 
-REPS=3
+REPS="${REPS:-3}"
 CHUNK=4096
-MAIN_SCHEME=${MAIN_SCHEME:-dynamic}
+# blockcyclic for the same reason as sweep-mpi.sh: fastest over the range
+# these sweeps use, and it does not spend a rank on coordination.
+MAIN_SCHEME=${MAIN_SCHEME:-blockcyclic}
 # SWEEPS selects which of A/B/C to run, so one sweep can be re-measured
 # without spending the time to redo the other two.
 SWEEPS="${SWEEPS:-A B C}"
@@ -60,10 +62,10 @@ LAUNCH_THREADS_FLAG="${LAUNCH_THREADS_FLAG:-}"
 FIXED_PROCS="${FIXED_PROCS:-4}"
 FIXED_THREADS="${FIXED_THREADS:-2}"
 
-N_MIN=20000000
-N_MAX=100000000
-N_STEPS=30
-N_FIXED=30000000
+N_MIN="${N_MIN:-20000000}"
+N_MAX="${N_MAX:-100000000}"
+N_STEPS="${N_STEPS:-30}"
+N_FIXED="${N_FIXED:-30000000}"
 
 # (procs, threads) pairs for Sweep B. Covers the same 1..16 worker ladder as
 # the Task 1 P-sweep, and at several worker counts includes more than one
