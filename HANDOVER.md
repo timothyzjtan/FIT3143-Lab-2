@@ -1,9 +1,15 @@
 # Handover — FIT3143 Lab 2
 
-**Status as of 2026-09-17.** Code complete and verified on the cluster. The
-cluster sweeps have run and been analysed. Task 3's write-up is rebuilt against
-the new data. **The two Task 4 documents still carry pre-cluster numbers and are
-the main remaining work.**
+**Status as of 2026-09-17 (later).** Code complete and verified on the cluster.
+The cluster sweeps have run and been analysed. Task 3's write-up is now
+**complete against all six axes the specification lists** (empirical and
+theoretical, each over n / processes / threads-per-process). **The two Task 4
+documents still carry pre-cluster numbers and are the only substantial work
+left.**
+
+> **Uncommitted right now:** `bench/slurm/env.sh` (+13/−2) and
+> `lab-2/task3-performance-evaluation.md` (+237/−25). Commit or review before
+> pulling.
 
 Repo-level orientation (directories, sweep knobs, CSV schemas, operational
 traps) lives in `CLAUDE.md`. This file tracks only *deliverable status*.
@@ -19,7 +25,8 @@ traps) lives in `CLAUDE.md`. This file tracks only *deliverable status*.
 | Correctness | Verified on 2 nodes: all 7 scheme configurations matched serial byte-for-byte (664,579 primes at n=1e7) |
 | Cluster sweeps | Done. 11/11 array tasks COMPLETED, no errors, 30 distinct *n* |
 | `bench/analysis-caas/` | Regenerated: `report.html` + 8 SVGs |
-| `lab-2/task3-performance-evaluation.md` | **Rewritten** against cluster data |
+| `lab-2/task3-performance-evaluation.md` | **Complete** — 531 lines, all six spec axes, verified arithmetic *(uncommitted)* |
+| `bench/slurm/env.sh` | OpenMPI module pinned to the documented name *(uncommitted)* |
 | `lab-2/task4-documentation.md` | **Stale** — pre-cluster numbers, 3 placeholders |
 | `lab-2/task4-presentation.md` | **Stale** — same |
 
@@ -67,11 +74,9 @@ already verified against `bench/analysis-caas/summary.csv`.
 a 6-7 minute delivery. The rubric's HD band requires 6-7 min and explicitly
 rewards parallel-computing terminology over general computing terms.
 
-**3. Decide how the figures ship.** `bench/analysis-caas/` is **gitignored**
-(`.gitignore:10`), but the Task 3 document now references
-`bench/analysis-caas/figures/fig6.svg` and `fig7.svg`. As things stand those
-figures are not in the repo and would not reach a marker. Either un-ignore the
-directory, or copy the 8 SVGs to a tracked location and re-point the docs.
+**3. ~~Decide how the figures ship.~~ RESOLVED** by commit `3525258` —
+`bench/analysis-caas/` is now tracked (10 files, including all 8 SVGs), so the
+Task 3 document's references resolve for a marker.
 
 **4. Fill the placeholders.** 3 in `task4-documentation.md` (lines 5, 6, 560),
 3 in `task4-presentation.md`: names, student IDs, `@student.monash.edu`
@@ -83,28 +88,30 @@ slides or documentation in a presentable format.
 
 **6. Hygiene** (small, do before submitting):
 
-- `README.md` reads `test again and again`.
-- Still tracked and shouldn't be: `lab-2/task1`, `lab-2/task2` (aarch64 ELF
-  binaries), `.DS_Store`, `bench/__pycache__/analyse.cpython-314.pyc`.
-  `.gitignore` covers the `week-4-lab-1/` binaries but not the `lab-2/` ones.
-- `bench/slurm/env.sh:4` still says the partition has a "30-minute hard limit".
-  It is **20 minutes** now — see §3.
+- `README.md` still reads `test again and again`.
+- Still tracked and shouldn't be: `.DS_Store` and
+  `bench/__pycache__/analyse.cpython-314.pyc`. (The `lab-2/` binaries were
+  untracked in `cf41c51` — these two remain.)
+- ~~`env.sh:4`'s "30-minute hard limit"~~ — **fixed**; it now states 20 minutes
+  and says to check `scontrol show partition defq` before trusting a `--time`.
 
 ---
 
-## 3. Open findings — still true, no action taken
+## 3. Open findings and measurement caveats
 
 1. **`defq`'s wall limit dropped to 00:20:00** (it was ≥28 min on 2026-09-17
    morning). A job requesting more sits at `PartitionTimeLimit` *forever*
    rather than failing at submit. Always check `scontrol show partition defq`
-   before trusting a runtime estimate. The `.sbatch` files are sized for 20 min;
-   `env.sh`'s comment is stale.
+   before trusting a runtime estimate. The `.sbatch` files are sized for 20 min,
+   and `env.sh`'s comment now says so.
 2. **`week-4-lab-1/task3.c` (OpenMP) does an O(n) serial compaction** — it
    writes a flag per candidate into an n-byte array (`task3.c:180`) then scans
    it (`:193`), while serial, pthreads and both MPI versions append primes
    directly. So OpenMP's measured serial fraction includes work the MPI versions
-   never do. Worth one sentence in the write-up; changing the code would
-   invalidate the existing data.
+   never do. **Now stated in the Task 3 write-up** (the "Comparison against the
+   Week 4 baselines" section), framed as making OpenMP's low Karp–Flatt figure
+   conservative rather than flattering. Changing the code would invalidate the
+   existing data, so it stays as a caveat.
 3. **`lab-2/task1.c:402`** — `displs[i] = (int) acc` truncates a *cumulative*
    long, four lines after a guard that only checks the per-rank count against
    `INT_MAX`. Unreachable at our n (would need ~5e10); the error message just
@@ -121,6 +128,38 @@ slides or documentation in a presentable format.
    we retain evidence that alternatives were explored — which the specification
    explicitly asks for. It is simply not the default, and not used for any
    headline number.
+
+7. **`analyse.py` drops the `imbalance` column.** Both programs reduce
+   `t_compute` with `MPI_MAX` *and* `MPI_MIN` and emit the ratio, but it only
+   survives in `bench/results-caas/mpi-*.csv`, not in `summary.csv`. The
+   measured figures are worth having: at n=100M, 16 ranks —
+   `block` **4.54×**, `blockcyclic` 1.04×, `cyclic` 1.01×, `dynamic` 1.00×.
+   Consider propagating the column next time `analyse.py` is touched.
+8. **The imbalance measurement confirms a prior prediction.** Modelling chunk
+   cost as ∝ √k and summing per rank predicted 3.4–4.1× for `block` and
+   1.0012× for `blockcyclic`; measured 4.54× and 1.04×. Same order, and
+   `blockcyclic`'s near-perfect balance predicted almost exactly. This is in the
+   write-up as a model-then-measurement result.
+9. **`dynamic` achieves *perfect* balance (1.00×) and still loses.** That kills
+   the "it was just badly tuned" counter-argument: balance was never the binding
+   constraint — there was only 4% left to recover, and it spends a whole rank
+   plus per-chunk request traffic to get it. Strong Q&A material.
+10. **43 of 207 measured configurations run under 1 second**, the fastest being
+    the hybrid at 4×16 finishing n=20M in **0.33 s** — against the
+    specification's explicit warning about sub-second results. All are
+    high-worker-count runs at n ≤ 54M. The effect is visible: hybrid speedup
+    scatters 14.4% between adjacent low-*n* points. The write-up now states this
+    openly and pins every headline figure to n=100M (fastest configuration
+    1.76 s). **Do not quote a low-*n* hybrid point as a precise result.**
+11. **No discontinuity at the node boundary.** W=16 fits one node, W=24 spans
+    two, yet efficiency falls smoothly (76.6% → 70.1%) and *e* dips slightly
+    (0.0203 → 0.0185). The interconnect shows up as a trend past W≥48, not as a
+    step — which is what the fixed-gather-cost model predicts.
+12. **No oversubscription data on CAAS.** Worker counts stop at exactly 64 on a
+    64-core allocation, so the specification's "what if you exceed the core
+    count" question is answered from the old laptop runs. Legitimate and
+    labelled as such, but `mpi-8node` at 96/128 ranks would put it on the
+    cluster if it ever schedules.
 
 ---
 
