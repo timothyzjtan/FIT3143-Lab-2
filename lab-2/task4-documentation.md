@@ -23,22 +23,30 @@ Wong Ka Jen, 33214263, kwon0124@student.monash.edu
 ## 1. Introduction
 
 In Week 4 we wrote a prime search three ways: serial, with POSIX threads, and
-with OpenMP. This report adds two more versions. **Task 1** spreads the work
-across separate processes that talk to each other with Open MPI. **Task 2** is
-a *hybrid*: it uses MPI processes, and each process also runs a team of OpenMP
-threads. **Task 3** compares the measured speedups against what Amdahl's Law
-and Gustafson's Law predict.
+with OpenMP. This report adds two more versions and evaluates them:
 
-The problem itself is unchanged. The program is given a number *n* on the
-command line and must write every prime smaller than *n* to a text file, in
-ascending order. In the MPI versions, the root process (rank 0) broadcasts *n*
-to everyone, every process — including the root — searches part of the range,
-and the root collects all the results, sorts them, and writes the file.
+- **Task 1** spreads the work across separate processes that talk to each
+  other with Open MPI.
+- **Task 2** is a *hybrid*: MPI processes, each of which also runs a team of
+  OpenMP threads.
+- **Task 3** compares the measured speedups against what Amdahl's Law and
+  Gustafson's Law predict.
 
-**All five programs use exactly the same prime test.** Speedup is defined as
-T_serial / T_parallel, so if the parallel versions used a faster algorithm the
-comparison would measure the algorithm change, not the parallelism. To keep the
-comparison fair, the per-number work is held constant. No sieve is used.
+The problem itself is unchanged:
+
+- The program is given a number *n* on the command line.
+- It must write every prime smaller than *n* to a text file, in ascending
+  order.
+- In the MPI versions, the root process (rank 0) broadcasts *n* to everyone;
+  every process — including the root — searches part of the range; the root
+  collects all the results, sorts them, and writes the file.
+
+**All five programs use exactly the same prime test.**
+
+- Speedup is defined as T_serial / T_parallel.
+- If the parallel versions used a faster algorithm, the comparison would
+  measure the algorithm change, not the parallelism.
+- So the work per number is held constant, and no sieve is used.
 
 All results in this report come from the Monash CAAS cluster. An earlier run on
 a single laptop is mentioned twice, clearly labelled, only for what it shows
@@ -60,26 +68,32 @@ qualitatively.
 | Repetitions | 3 per configuration, reduced by **median** |
 | Baseline | Week 4 serial program, re-measured on the same nodes, at the same *n* |
 
-The serial program takes 5.49 s at *n* = 20M and 53.72 s at *n* = 100M.
-One node has 16 cores, so any run with more than 16 workers spans several
-nodes and has to send data over the network. We never ran more workers than
-cores: the largest configuration uses all 64.
+- The serial program takes 5.49 s at *n* = 20M and 53.72 s at *n* = 100M.
+- One node has 16 cores, so any run with more than 16 workers spans several
+  nodes and has to send data over the network.
+- We never ran more workers than cores: the largest configuration uses all 64.
 
-**Partitioning scheme.** Every headline number uses the `blockcyclic` scheme
-(work dealt out in 4096-number chunks, round-robin). It is the default in both
-programs. The alternative `dynamic` scheme, where rank 0 hands out work on
-request, only appears in the scheme comparison (§3.3). It is not used anywhere
-else because it turns rank 0 into a pure dispatcher that does no searching,
-and the specification requires every process — root included — to do a share
-of the work.
+**Partitioning scheme.**
 
-**Choice of *n* for headline numbers.** The specification warns against
-quoting runs that finish in under a second, because timing noise dominates. 43
-of our 207 configurations do finish under 1 s — all of them high-worker-count
-runs at *n* ≤ 54M — and at those sizes the hybrid's speedup jumps around by up
-to 14% between neighbouring points. **All headline numbers are therefore taken
-at *n* = 100M**, where even the fastest configuration takes 1.76 s. The smaller
-*n* values are still plotted, but only to show the trend.
+- Every headline number uses the `blockcyclic` scheme (work dealt out in
+  4096-number chunks, round-robin). It is the default in both programs.
+- The alternative `dynamic` scheme, where rank 0 hands out work on request,
+  only appears in the scheme comparison (§3.3).
+- `dynamic` is not used anywhere else because it turns rank 0 into a pure
+  dispatcher that does no searching, and the specification requires every
+  process — root included — to do a share of the work.
+
+**Choice of *n* for headline numbers.**
+
+- The specification warns against quoting runs that finish in under a second,
+  because timing noise dominates.
+- 43 of our 207 configurations do finish under 1 s — all of them
+  high-worker-count runs at *n* ≤ 54M.
+- At those sizes the hybrid's speedup jumps around by up to 14% between
+  neighbouring points.
+- **All headline numbers are therefore taken at *n* = 100M**, where even the
+  fastest configuration takes 1.76 s.
+- The smaller *n* values are still plotted, but only to show the trend.
 
 ### 2.2 What is timed
 
@@ -100,17 +114,21 @@ used in §5 are *measured*, not guessed:
 
 Three decisions affect every number that follows:
 
-- **We report the median of 3 runs, not the mean.** CAAS nodes can be shared
-  with other jobs. If one of the three runs is slowed down by someone else's
-  work, the mean moves but the median does not.
-- **`t_compute` is the time of the *slowest* rank.** A phase is not finished
-  until every rank has finished, so we reduce `t_compute` with `MPI_MAX`. We
-  also record the fastest rank (`MPI_MIN`) and report the ratio MAX / MIN as
-  the **imbalance**: 1.0 means every rank finished together; 4.0 means the
-  slowest rank took four times as long as the fastest.
-- **`t_lsort` counts as parallel time.** Every rank sorts its own results at
-  the same time, on different data. Counting it as serial would unfairly
-  penalise the hybrid, which is the only program that does it.
+- **We report the median of 3 runs, not the mean.**
+  - CAAS nodes can be shared with other jobs.
+  - If one of the three runs is slowed down by someone else's work, the mean
+    moves but the median does not.
+- **`t_compute` is the time of the *slowest* rank.**
+  - A phase is not finished until every rank has finished, so we reduce
+    `t_compute` with `MPI_MAX`.
+  - We also record the fastest rank (`MPI_MIN`) and report the ratio
+    MAX / MIN as the **imbalance**.
+  - Imbalance 1.0 means every rank finished together; 4.0 means the slowest
+    rank took four times as long as the fastest.
+- **`t_lsort` counts as parallel time.**
+  - Every rank sorts its own results at the same time, on different data.
+  - Counting it as serial would unfairly penalise the hybrid, which is the
+    only program that does it.
 
 The serial baseline records the phases that apply to it (`t_alloc`,
 `t_compute`, `t_merge`, `t_io`).
@@ -121,42 +139,56 @@ The serial baseline records the phases that apply to it (`t_alloc`,
 
 ### 3.1 Implementation and optimisations
 
-The flow is: rank 0 reads *n* from the command line and broadcasts it with
-`MPI_Bcast`. Every rank, including rank 0, searches its share of the range.
-Each rank sends its count of primes in one `MPI_Gather`, then its actual
-primes in one `MPI_Gatherv`. Rank 0 sorts the combined list if needed and
-writes the file.
+The flow of the program:
+
+1. Rank 0 reads *n* from the command line and broadcasts it with `MPI_Bcast`.
+2. Every rank, including rank 0, searches its share of the range.
+3. Each rank sends its count of primes in one `MPI_Gather`, then its actual
+   primes in one `MPI_Gatherv`.
+4. Rank 0 sorts the combined list if needed and writes the file.
 
 The optimisations, from most to least important:
 
-- **The prime test.** `is_prime` rejects even numbers with a single modulo,
-  then tries only odd divisors up to ⌊√k⌋. That is half the divisions of a
-  naive loop. This function is identical, byte for byte, in all five programs.
-- **No wasted candidates.** The `cyclic` scheme only ever visits odd numbers:
-  rank *r* starts at 3 + 2r and steps by 2P. No rank is handed a run of even
-  numbers that the test would reject one at a time.
-- **Memory sized to the answer, not the input.** Instead of `malloc(n)`, each
-  rank's buffer is sized from a known upper bound on the number of primes,
-  π(x) < 1.26 x / ln x, divided by the number of ranks P. At *n* = 100M with
-  16 ranks that is about 3.4 MB per rank instead of 800 MB. The buffer grows
-  if the bound is ever exceeded (it never is).
-- **One collective call instead of P messages.** Counts are gathered first so
-  the root knows exactly where each rank's primes go in the combined buffer;
-  then all the primes move in a single `Gatherv`.
-- **Skip the sort when it is not needed.** Under the `block` scheme each rank
-  owns a contiguous range in ascending order, so the combined list is already
-  sorted and the root skips `qsort`.
-- **Honest timing.** A barrier runs before the compute timer starts;
-  `t_compute` is reduced with `MPI_MAX` and `MPI_MIN`; and `t_total` runs from
-  `MPI_Init` to `MPI_Finalize`. The reported speedup therefore includes the
-  broadcast, the gather, the sort and the file write, as the specification
-  requires.
+- **The prime test.**
+  - `is_prime` rejects even numbers with a single modulo, then tries only odd
+    divisors up to ⌊√k⌋ — half the divisions of a naive loop.
+  - This function is identical, byte for byte, in all five programs.
+- **No wasted candidates.**
+  - The `cyclic` scheme only ever visits odd numbers: rank *r* starts at
+    3 + 2r and steps by 2P.
+  - No rank is handed a run of even numbers that the test would reject one at
+    a time.
+- **Memory sized to the answer, not the input.**
+  - Instead of `malloc(n)`, each rank's buffer is sized from a known upper
+    bound on the number of primes, π(x) < 1.26 x / ln x, divided by the number
+    of ranks P.
+  - At *n* = 100M with 16 ranks that is about 3.4 MB per rank instead of
+    800 MB.
+  - The buffer grows if the bound is ever exceeded (it never is).
+- **One collective call instead of P messages.**
+  - Counts are gathered first, so the root knows exactly where each rank's
+    primes go in the combined buffer.
+  - Then all the primes move in a single `Gatherv`.
+- **Skip the sort when it is not needed.**
+  - Under the `block` scheme each rank owns a contiguous range in ascending
+    order.
+  - The combined list is therefore already sorted, and the root skips `qsort`.
+- **Honest timing.**
+  - A barrier runs before the compute timer starts.
+  - `t_compute` is reduced with `MPI_MAX` and `MPI_MIN`.
+  - `t_total` runs from `MPI_Init` to `MPI_Finalize`, so the reported speedup
+    includes the broadcast, the gather, the sort and the file write, as the
+    specification requires.
 
 ### 3.2 Partitioning schemes
 
-Testing a number *k* for primality costs up to √k divisions, so **bigger
-numbers cost more to test**. This matters: if you give each rank an equal
-*slice of the range*, the rank with the biggest numbers does the most work.
+Why the choice of scheme matters:
+
+- Testing a number *k* for primality costs up to √k divisions, so **bigger
+  numbers cost more to test**.
+- If you give each rank an equal *slice of the range*, the rank with the
+  biggest numbers does the most work.
+
 Four ways of dividing the work were implemented, chosen with `--scheme`:
 
 | Scheme | How work is assigned | Balance | Sort at root |
@@ -166,9 +198,9 @@ Four ways of dividing the work were implemented, chosen with `--scheme`:
 | `blockcyclic` | 4096-number chunks dealt out round-robin | very good | required |
 | `dynamic` | rank 0 hands out chunks on request | best in principle | required |
 
-`block` is the only scheme whose results come back already in order. The other
-three interleave the range across ranks, so the root has to sort. That sort is
-timed separately and only charged to the schemes that do it.
+- `block` is the only scheme whose results come back already in order.
+- The other three interleave the range across ranks, so the root has to sort.
+- That sort is timed separately and only charged to the schemes that do it.
 
 ### 3.3 Which scheme performs best
 
@@ -185,32 +217,42 @@ thing that changes between rows. Imbalance is the MAX / MIN ratio of
 | `dynamic` | 11.54× | **1.00×** | 0.026 |
 | `block` | 10.04× | **4.54×** | 0.040 |
 
-`blockcyclic` and `cyclic` are effectively tied, and both beat `block` by
-**23%** on the same hardware with the same arithmetic. That is the cheapest
-improvement in the whole study: it costs nothing but a different assignment of
-numbers to ranks. `block`'s imbalance was also predictable in advance: adding
-up a √k cost for every number in each rank's slice predicts 3.4–4.1× for
-`block` and 1.0012× for `blockcyclic`; the measured values are 4.54× and 1.04×.
-We chose `blockcyclic` over `cyclic` because each rank processes 4096
-consecutive numbers at a time, which is friendlier to the cache than jumping
-by P every step.
+What the table shows:
 
-`dynamic` is the interesting case. Its balance is **perfect** (1.00×), exactly
-as a master–worker scheduler should deliver, and yet it is 6.6% *slower* than
-`blockcyclic`. The reason is that imbalance was never the real problem: there
-was only 4% of it left to remove. To remove it, `dynamic` gives up a whole
-rank as a dispatcher (15 of 16 ranks compute, which alone predicts a 6.3%
-loss) and adds request messages on top.
+- `blockcyclic` and `cyclic` are effectively tied, and both beat `block` by
+  **23%** on the same hardware with the same arithmetic.
+- That is the cheapest improvement in the whole study: it costs nothing but a
+  different assignment of numbers to ranks.
+- `block`'s imbalance was predictable in advance. Adding up a √k cost for
+  every number in each rank's slice predicts 3.4–4.1× for `block` and 1.0012×
+  for `blockcyclic`; the measured values are 4.54× and 1.04×.
+- We chose `blockcyclic` over `cyclic` because each rank processes 4096
+  consecutive numbers at a time, which is friendlier to the cache than jumping
+  by P every step.
+
+`dynamic` is the interesting case:
+
+- Its balance is **perfect** (1.00×), exactly as a master–worker scheduler
+  should deliver.
+- Yet it is 6.6% *slower* than `blockcyclic`.
+- The reason: imbalance was never the real problem — there was only 4% of it
+  left to remove.
+- To remove it, `dynamic` gives up a whole rank as a dispatcher (15 of 16
+  ranks compute, which alone predicts a 6.3% loss) and adds request messages
+  on top.
 
 ### 3.4 Runtime against problem size *(required graph a-1)*
 
 ![Runtime against n](../bench/analysis-caas/figures/fig1.svg)
 
-Both axes are logarithmic, and there are 30 values of *n*. Task 1 is shown at
-16 ranks, the Week 4 threaded programs at 16 threads, and the hybrid at 4
-ranks × 16 threads. On a log–log plot a straight line means runtime is a power
-of *n*. The parallel lines sit a constant distance below the serial line,
-which is what a constant speedup looks like on these axes.
+How to read the graph:
+
+- Both axes are logarithmic, and there are 30 values of *n*.
+- Task 1 is shown at 16 ranks, the Week 4 threaded programs at 16 threads,
+  and the hybrid at 4 ranks × 16 threads.
+- On a log–log plot a straight line means runtime is a power of *n*.
+- The parallel lines sit a constant distance below the serial line, which is
+  what a constant speedup looks like on these axes.
 
 At *n* = 100M:
 
@@ -238,15 +280,20 @@ maximum speedup Amdahl's Law allows for that worker count (see §5).
 | 100,000,000 | 53.72 s | **12.30×** | **87%** | **30.59×** | **75%** | 13.51× | 10.35× |
 
 **Every implementation gets a better speedup as *n* grows, and the MPI-based
-ones gain the most:** from 20M to 100M, Task 1 improves by 31% and Task 2 by
-82%, compared with 17% for OpenMP and 11% for pthreads. Two things cause this.
-First, the serial fraction of the program shrinks as *n* grows (§5.2), which
-raises the Amdahl ceiling for everyone. Second, the cost of collecting the
-results is fixed by how many primes there are (≈ n / ln n), while the search
-itself grows faster (≈ n^1.5 / ln n). So as *n* grows, communication becomes a
-smaller *share* of the run. The "of Amdahl" columns show this second effect:
-only the MPI-based programs get *closer* to their ceiling as *n* grows. In
-short, message passing is penalised at small *n* and rewarded at large *n*.
+ones gain the most.**
+
+- From 20M to 100M, Task 1 improves by 31% and Task 2 by 82%, compared with
+  17% for OpenMP and 11% for pthreads.
+- Two things cause this:
+  1. The serial fraction of the program shrinks as *n* grows (§5.2), which
+     raises the Amdahl ceiling for everyone.
+  2. The cost of collecting the results is fixed by how many primes there are
+     (≈ n / ln n), while the search itself grows faster (≈ n^1.5 / ln n). So
+     as *n* grows, communication becomes a smaller *share* of the run.
+- The "of Amdahl" columns show the second effect: only the MPI-based programs
+  get *closer* to their ceiling as *n* grows.
+- In short, message passing is penalised at small *n* and rewarded at large
+  *n*.
 
 ### 3.6 Speedup against process count *(required graph a-3)*
 
@@ -263,20 +310,27 @@ linear speedup.
 | **Speedup** | 1.00× | 1.96× | 3.76× | 7.00× | 9.89× | 12.26× | 16.82× | 20.88× | 23.34× | **23.87×** |
 | Efficiency | 100% | 98% | 94% | 87% | 82% | 77% | 70% | 65% | 49% | 37% |
 
-Within one node the speedup is close to linear: 98% of ideal at 2 ranks, 94%
-at 4, 87% at 8, 77% at 16. There is **no sudden drop when we cross to a
-second node** — efficiency falls smoothly from 16 to 24 ranks. Past 32 ranks
-the curve **flattens out but does not turn down**: going from 32 to 48 ranks
-gains 12% more speedup, and from 48 to 64 only 2%. In other words the last 16
-ranks give 2% more speedup for 33% more hardware. §5.4 explains where the
-time goes.
+What the table shows:
 
-On the earlier laptop run (10 cores, superseded scheme, numbers not quoted)
-the curve *peaked and then fell* once there were more ranks than cores. Both
-results are real; they are just different situations. Extra ranks on a single
-machine have to share the same cores, so they add context switching without
-adding compute. Extra ranks on new cluster nodes add real compute, just with
-diminishing returns.
+- Within one node the speedup is close to linear: 98% of ideal at 2 ranks,
+  94% at 4, 87% at 8, 77% at 16.
+- There is **no sudden drop when we cross to a second node** — efficiency
+  falls smoothly from 16 to 24 ranks.
+- Past 32 ranks the curve **flattens out but does not turn down**: 32 → 48
+  ranks gains 12% more speedup, and 48 → 64 only 2%.
+- In other words, the last 16 ranks give 2% more speedup for 33% more
+  hardware. §5.4 explains where the time goes.
+
+Comparison with the earlier laptop run (10 cores, superseded scheme, numbers
+not quoted):
+
+- On the laptop, the curve *peaked and then fell* once there were more ranks
+  than cores.
+- Both results are real; they are just different situations.
+- Extra ranks on a single machine have to share the same cores, so they add
+  context switching without adding compute.
+- Extra ranks on new cluster nodes add real compute, just with diminishing
+  returns.
 
 ---
 
@@ -284,36 +338,47 @@ diminishing returns.
 
 ### 4.1 Two-level decomposition
 
-**A chunk is the unit of work at both levels.** The MPI scheme decides which
-chunks each rank owns; inside the rank, `#pragma omp for schedule(dynamic)`
-hands those chunks out to the threads. Every process, including the root,
-creates its own team of OpenMP threads. Because threads share their process's
-memory, *n* is available to every thread without any extra communication.
+**A chunk is the unit of work at both levels.**
 
-Inside a rank, `schedule(dynamic, 1)` gives the next chunk to whichever thread
-is free, so the "bigger numbers cost more" problem is balanced across threads
-just as `blockcyclic` balances it across ranks. Each thread writes primes into
-its **own private buffer**, so there is no lock or atomic operation in the
-inner loop. When the team finishes, the rank joins the buffers and sorts them.
-Buffers are sized from the same π(n) bound as Task 1, divided by
-ranks × threads.
+- The MPI scheme decides which chunks each rank owns.
+- Inside the rank, `#pragma omp for schedule(dynamic)` hands those chunks out
+  to the threads.
+- Every process, including the root, creates its own team of OpenMP threads.
+- Because threads share their process's memory, *n* is available to every
+  thread without any extra communication.
 
-Two things follow from this design. Because threads take chunks in whatever
-order they become free, each rank's primes come out unordered, so each rank
-sorts its own results (`t_lsort`, counted as parallel) before the gather; the
-root then only sorts the full list if the MPI scheme interleaved the range.
-Also, the `cyclic` scheme is not offered in the hybrid, because it hands out
-one number at a time and there is no chunk for the threads to share. Under
-`dynamic`, rank 0's whole thread team sits idle along with rank 0: at 4×16
-that is 16 of the 64 workers, and the measured loss (30.33× → 21.78×, −28%) is
-close to the 25% that the idle workers alone would predict.
+How the threads work inside a rank:
 
-**One trap worth recording.** The first hybrid runs were by far the slowest
-in the study. The cause was the launcher's default CPU binding, which pins
-each rank to a single core — so all of that rank's threads had to share one
-core. Every hybrid run now disables binding (`srun --cpu-bind=none` on the
-cluster, `mpirun --bind-to none` in Docker), and every result measured before
-this was found was thrown away.
+- `schedule(dynamic, 1)` gives the next chunk to whichever thread is free, so
+  the "bigger numbers cost more" problem is balanced across threads just as
+  `blockcyclic` balances it across ranks.
+- Each thread writes primes into its **own private buffer**, so there is no
+  lock or atomic operation in the inner loop.
+- When the team finishes, the rank joins the buffers and sorts them.
+- Buffers are sized from the same π(n) bound as Task 1, divided by
+  ranks × threads.
+
+Three things follow from this design:
+
+- **Each rank sorts its own results.** Threads take chunks in whatever order
+  they become free, so each rank's primes come out unordered. The rank sorts
+  them (`t_lsort`, counted as parallel) before the gather; the root then only
+  sorts the full list if the MPI scheme interleaved the range.
+- **`cyclic` is not offered in the hybrid.** It hands out one number at a
+  time, so there is no chunk for the threads to share.
+- **`dynamic` idles a whole thread team.** Rank 0's threads sit idle along
+  with rank 0. At 4×16 that is 16 of the 64 workers, and the measured loss
+  (30.33× → 21.78×, −28%) is close to the 25% that the idle workers alone
+  would predict.
+
+**One trap worth recording.**
+
+- The first hybrid runs were by far the slowest in the study.
+- The cause was the launcher's default CPU binding, which pins each rank to a
+  single core — so all of that rank's threads had to share one core.
+- Every hybrid run now disables binding (`srun --cpu-bind=none` on the
+  cluster, `mpirun --bind-to none` in Docker).
+- Every result measured before this was found was thrown away.
 
 ### 4.2 Threads per rank at a fixed process count *(required graph b-1)*
 
@@ -331,22 +396,26 @@ of 3.76×.
 | Efficiency | 95% | 88% | 79% | 66% | 47% |
 | Karp–Flatt *e* | 0.0186 | 0.0190 | 0.0177 | 0.0169 | 0.0180 |
 
-The Karp–Flatt value *e* (explained in §5.3) is an estimate of how much of the
-run is not being parallelised. **Here it stays flat across the whole thread
-axis.** Compare that with the rank axis in §3.6, where *e* stayed near 0.020
-up to 32 ranks and then climbed to 0.027 at 64. Adding ranks adds overhead;
-adding threads does not. A thread shares its rank's memory, so it adds nothing
-to the amount of data gathered or the number of messages the root receives.
-The same pattern holds when ranks are fixed at 8 (12.78× → 30.37×, *e*
-0.017–0.019) and at 16 (12.66× → 29.70×, *e* 0.018), so P = 4 is not a
-lucky choice.
+What the table shows:
+
+- The Karp–Flatt value *e* (explained in §5.3) is an estimate of how much of
+  the run is not being parallelised.
+- **Here it stays flat across the whole thread axis.**
+- Compare the rank axis in §3.6, where *e* stayed near 0.020 up to 32 ranks
+  and then climbed to 0.027 at 64.
+- Adding ranks adds overhead; adding threads does not. A thread shares its
+  rank's memory, so it adds nothing to the amount of data gathered or the
+  number of messages the root receives.
+- The same pattern holds when ranks are fixed at 8 (12.78× → 30.37×, *e*
+  0.017–0.019) and at 16 (12.66× → 29.70×, *e* 0.018), so P = 4 is not a
+  lucky choice.
 
 ### 4.3 Hybrid against shared-memory at matched worker counts *(required graph b-2)*
 
-Here the hybrid with P ranks × T threads is compared against OpenMP and
-pthreads using P × T threads, so the total number of workers is the same. The
-threaded programs cannot use more than one node, so that comparison stops at
-16 workers.
+- The hybrid with P ranks × T threads is compared against OpenMP and pthreads
+  using P × T threads, so the total number of workers is the same.
+- The threaded programs cannot use more than one node, so that comparison
+  stops at 16 workers.
 
 ![Speedup against worker count](../bench/analysis-caas/figures/fig3.svg)
 
@@ -357,9 +426,9 @@ threaded programs cannot use more than one node, so that comparison stops at
 | **Hybrid** (best split) | 3.79× (4×1) | 7.06× (4×2) | 12.78× (8×2) |
 | MPI (Task 1) | 3.76× | 7.00× | 12.26× |
 
-Within one node the hybrid is within 5% of OpenMP and ahead of pthreads. The
-pthreads program divides the range into equal static blocks, so it suffers the
-same imbalance as the `block` scheme in §3.3.
+- Within one node the hybrid is within 5% of OpenMP and ahead of pthreads.
+- The pthreads program divides the range into equal static blocks, so it
+  suffers the same imbalance as the `block` scheme in §3.3.
 
 Past 16 workers only the MPI-based programs can keep going. There the fairest
 comparison is the hybrid against *itself* with one thread per rank: same
@@ -372,17 +441,22 @@ workers are threads or ranks.
 | 32 | 2×16 | 21.11× | 18.65× | +13% |
 | 64 | 8×8 | **30.37×** | 22.52× | **+35%** |
 
-At 64 workers the ranking is 8×8 (30.37×), 4×16 (30.01×), 16×4 (29.70×), 32×2
-(24.78×), 64×1 (22.52×). **Every split with 8 or more threads per rank beats
-every split with 2 or fewer**, and the three high-thread splits are within 2%
-of each other. Once you stop spending workers on ranks, the exact split
-barely matters.
+At 64 workers:
 
-The 64×1 hybrid (22.52×) is about 6% slower than Task 1 at 64 ranks (23.87×).
-That 6% is the fixed cost of creating a thread team and running `t_lsort`,
-which the hybrid pays even with one thread. It is what Task 1 saves by having
-only one level — and what the hybrid earns back many times over when it uses
-both.
+- The ranking is 8×8 (30.37×), 4×16 (30.01×), 16×4 (29.70×), 32×2 (24.78×),
+  64×1 (22.52×).
+- **Every split with 8 or more threads per rank beats every split with 2 or
+  fewer**, and the three high-thread splits are within 2% of each other.
+- Once you stop spending workers on ranks, the exact split barely matters.
+
+The cost of the second level:
+
+- The 64×1 hybrid (22.52×) is about 6% slower than Task 1 at 64 ranks
+  (23.87×).
+- That 6% is the fixed cost of creating a thread team and running `t_lsort`,
+  which the hybrid pays even with one thread.
+- It is what Task 1 saves by having only one level — and what the hybrid earns
+  back many times over when it uses both.
 
 ---
 
@@ -402,14 +476,18 @@ and they must not be given the same *s*:
 | *s* is the serial share of | the **one-worker** run | the **parallel** run as it actually executed |
 | So *s* is measured from | the serial program at that *n* | each P×T run being scored |
 
-Why the distinction matters: if you gave Amdahl a parallel run's serial
-fraction, the argument would go in a circle. The measured serial share of a
-parallel run *grows* with W (here from 0.015 at W = 1 to 0.42 at W = 64),
-simply because the parallel part gets shorter while the serial part does not.
-Amdahl's "ceiling" would then sink as W grows — the very thing it is supposed
-to bound. Gustafson's fraction is *meant* to behave that way, because it
-describes how much of a bigger machine's time goes on coordination, so it is
-taken from each parallel run using the phase table in §2.2.
+Why the distinction matters:
+
+- If you gave Amdahl a parallel run's serial fraction, the argument would go
+  in a circle.
+- The measured serial share of a parallel run *grows* with W (here from 0.015
+  at W = 1 to 0.42 at W = 64), simply because the parallel part gets shorter
+  while the serial part does not.
+- Amdahl's "ceiling" would then sink as W grows — the very thing it is
+  supposed to bound.
+- Gustafson's fraction is *meant* to behave that way, because it describes
+  how much of a bigger machine's time goes on coordination. So it is taken
+  from each parallel run using the phase table in §2.2.
 
 ### 5.2 Amdahl's fraction, from the serial program
 
@@ -423,28 +501,34 @@ s = median(t_alloc + t_merge + t_io) / [ that + median(t_compute) ]
 | 45,979,000 | 0.0149 | 67.0× |
 | 100,000,000 | 0.0090 | **110.9×** |
 
-**The serial fraction shrinks as *n* grows.** The search costs roughly
-n^1.5 / ln n, while allocation and file writing scale with the number of
-primes, about n / ln n. A bigger *n* does not make the program faster, but it
-does raise the *limit* on how much faster parallelism could make it. Because
-*s* depends only on *n*, the Amdahl curve is the same for Task 1 and Task 2 —
-which is correct, since both parallelise the same phase of the same algorithm.
+**The serial fraction shrinks as *n* grows.**
+
+- The search costs roughly n^1.5 / ln n, while allocation and file writing
+  scale with the number of primes, about n / ln n.
+- A bigger *n* does not make the program faster, but it does raise the *limit*
+  on how much faster parallelism could make it.
+- Because *s* depends only on *n*, the Amdahl curve is the same for Task 1 and
+  Task 2 — which is correct, since both parallelise the same phase of the same
+  algorithm.
 
 ### 5.3 Karp–Flatt: telling serial work apart from overhead
 
-Neither law includes a term for communication, so both predict more speedup
-than we get. The Karp–Flatt metric goes the other way: it takes the *measured*
-speedup and works backwards through Amdahl's formula to find the serial
-fraction that would explain it,
+- Neither law includes a term for communication, so both predict more speedup
+  than we get.
+- The Karp–Flatt metric goes the other way: it takes the *measured* speedup
+  and works backwards through Amdahl's formula to find the serial fraction
+  that would explain it:
 
 ```
 e = (1/S − 1/W) / (1 − 1/W)
 ```
 
-The useful part is how *e* changes with W. If *e* stays flat, the loss is
-genuine serial work. If *e* rises with W, the loss is overhead that grows as
-you add workers (communication, for example). If *e* falls with W, the loss at
-small W was load imbalance.
+The useful part is how *e* changes with W:
+
+- *e* stays flat → the loss is genuine serial work.
+- *e* rises with W → the loss is overhead that grows as you add workers
+  (communication, for example).
+- *e* falls with W → the loss at small W was load imbalance.
 
 At *n* = 100M (true serial fraction 0.0090):
 
@@ -455,22 +539,25 @@ At *n* = 100M (true serial fraction 0.0090):
 | OpenMP | 0.018 | 0.016 | 0.014 | 0.013 | — | — | — |
 | pthreads | **0.275** | 0.130 | 0.067 | 0.038 | — | — | — |
 
-- **MPI is flat at about 0.020 up to 32 ranks, then rises.** Up to 32 ranks
-  the program scales as well as its serial side allows; beyond 48 the network
-  starts to cost more than the extra ranks save. Even the flat value is 2.2×
-  the true serial fraction. The difference is the gather and the root's sort:
-  the serial program never does either, so Amdahl's *s* cannot see them, and
-  Karp–Flatt lumps them into the only term it has.
-- **The hybrid is flat everywhere.** Its best splits reach 64 workers using at
-  most 16 ranks, so the gather never grows.
-- **OpenMP has the lowest *e* in the study** (0.013): there is nothing to
-  gather, and `schedule(dynamic)` balances the √k cost. This is despite the
-  Week 4 OpenMP program having an extra O(n) serial step (compacting an
-  *n*-byte flag array) that the other programs do not, so the comparison is
-  if anything unfair to OpenMP.
-- **pthreads *falls* with W.** That is the signature of load imbalance from
-  static block partitioning, worst when there are only two blocks. It is the
-  threaded equivalent of the `block` scheme.
+- **MPI is flat at about 0.020 up to 32 ranks, then rises.**
+  - Up to 32 ranks the program scales as well as its serial side allows;
+    beyond 48 the network starts to cost more than the extra ranks save.
+  - Even the flat value is 2.2× the true serial fraction.
+  - The difference is the gather and the root's sort: the serial program never
+    does either, so Amdahl's *s* cannot see them, and Karp–Flatt lumps them
+    into the only term it has.
+- **The hybrid is flat everywhere.**
+  - Its best splits reach 64 workers using at most 16 ranks, so the gather
+    never grows.
+- **OpenMP has the lowest *e* in the study** (0.013).
+  - There is nothing to gather, and `schedule(dynamic)` balances the √k cost.
+  - This is despite the Week 4 OpenMP program having an extra O(n) serial step
+    (compacting an *n*-byte flag array) that the other programs do not, so
+    the comparison is if anything unfair to OpenMP.
+- **pthreads *falls* with W.**
+  - That is the signature of load imbalance from static block partitioning,
+    worst when there are only two blocks.
+  - It is the threaded equivalent of the `block` scheme.
 
 ### 5.4 Measured against theoretical *(required graphs c-1 and c-2)*
 
@@ -495,94 +582,120 @@ At *n* = 100M (true serial fraction 0.0090):
 | Gustafson | 3.84× | 7.29× | 13.47× | 22.67× | 36.75× |
 
 **The measurements follow Amdahl up to about 32 workers and then fall away.**
-Task 1 reaches 93% of the Amdahl prediction at 8 ranks, 83% at 32, and 58% at
-64. The hybrid stays closer at every W (74% at 64) because it reaches the same
-worker count with a quarter as many ranks.
 
-**Gustafson sits below Amdahl the whole way** (37.49× vs 40.82× at 64). Its
-*s* comes from the parallel run and grows with W, which drags s + p·W down as
-the machine grows; Amdahl's *s* stays fixed. Because this experiment keeps *n*
-fixed, Amdahl is the right model. Gustafson shows what the same code would
-promise if we grew the problem with the machine, in which case the order of
-the two curves would flip.
+- Task 1 reaches 93% of the Amdahl prediction at 8 ranks, 83% at 32, and 58%
+  at 64.
+- The hybrid stays closer at every W (74% at 64) because it reaches the same
+  worker count with a quarter as many ranks.
+
+**Gustafson sits below Amdahl the whole way** (37.49× vs 40.82× at 64).
+
+- Its *s* comes from the parallel run and grows with W, which drags s + p·W
+  down as the machine grows; Amdahl's *s* stays fixed.
+- Because this experiment keeps *n* fixed, Amdahl is the right model.
+- Gustafson shows what the same code would promise if we grew the problem with
+  the machine, in which case the order of the two curves would flip.
 
 **At 64 ranks the gap to Amdahl is 0.93 s** (Amdahl's 40.82× means 1.32 s
 against the 53.72 s reference; we measured 2.25 s). It comes from three
 things that Amdahl's *s* cannot see, because the serial program does none of
 them:
 
-1. **A fixed-size gather.** There are π(10⁸) = 5,761,455 primes, and at 8
-   bytes each that is 46.1 MB. On a 1 Gb/s network that takes at least
-   0.37 s — 40% of the gap on its own. Each rank's search gets shorter as
-   1/W; this transfer does not get shorter at all.
-2. **A serial sort at the root.** The interleaved chunks arrive out of order,
-   so the root has to `qsort` 5.76 M values. The serial program produces its
-   primes in order and its `t_merge` is exactly zero.
-3. **Per-message latency × 64.** `MPI_Gatherv` at 64 ranks means 64 separate
-   transfers into one receiver, no matter how small each one is.
+1. **A fixed-size gather.**
+   - There are π(10⁸) = 5,761,455 primes, and at 8 bytes each that is
+     46.1 MB.
+   - On a 1 Gb/s network that takes at least 0.37 s — 40% of the gap on its
+     own.
+   - Each rank's search gets shorter as 1/W; this transfer does not get
+     shorter at all.
+2. **A serial sort at the root.**
+   - The interleaved chunks arrive out of order, so the root has to `qsort`
+     5.76 M values.
+   - The serial program produces its primes in order and its `t_merge` is
+     exactly zero.
+3. **Per-message latency × 64.**
+   - `MPI_Gatherv` at 64 ranks means 64 separate transfers into one receiver,
+     no matter how small each one is.
 
-Both laws describe how work is *split up*; neither describes how the results
-are *put back together*. That is why the curves separate, and why Karp–Flatt
-reports 2.2× more "serial work" than the algorithm actually contains. For the
-hybrid, the laws only see the total P × T and predict one value per worker
-count — but the measurements differ (30.37× at 8×8 against 22.52× at 64×1),
-because threads avoid the gather and ranks pay for it. That gap is what figure
-7 makes visible.
+What this means for the two laws:
+
+- Both laws describe how work is *split up*; neither describes how the results
+  are *put back together*.
+- That is why the curves separate, and why Karp–Flatt reports 2.2× more
+  "serial work" than the algorithm actually contains.
+- For the hybrid, the laws only see the total P × T and predict one value per
+  worker count. The measurements differ (30.37× at 8×8 against 22.52× at
+  64×1), because threads avoid the gather and ranks pay for it. That gap is
+  what figure 7 makes visible.
 
 ---
 
 ## 6. Discussion
 
 **How does the actual speedup compare against the theoretical speedup?**
-It follows Amdahl up to about 32 workers (93% at 8, 83% at 32) and drops to
-58% at 64. Karp–Flatt shows where the divergence happens: *e* is flat while
-the measured curve tracks theory, and turns upward exactly where the curve
-stops tracking. So up to 32 ranks the loss is serial work plus the fixed
-gather and sort, and beyond 32 it is communication that grows with rank count
-(§5.4). Gustafson sits below Amdahl because its fraction is taken from the
-parallel run; for this fixed-*n* experiment Amdahl is the appropriate model.
+
+- It follows Amdahl up to about 32 workers (93% at 8, 83% at 32) and drops to
+  58% at 64.
+- Karp–Flatt shows where the divergence happens: *e* is flat while the
+  measured curve tracks theory, and turns upward exactly where the curve stops
+  tracking.
+- So up to 32 ranks the loss is serial work plus the fixed gather and sort;
+  beyond 32 it is communication that grows with rank count (§5.4).
+- Gustafson sits below Amdahl because its fraction is taken from the parallel
+  run; for this fixed-*n* experiment Amdahl is the appropriate model.
 
 **Will more MPI processes always increase the speedup?**
-No. In theory Amdahl caps *n* = 100M at 110.9× no matter how many processes
-there are. In practice the cluster flattens rather than collapses: speedup
-keeps rising all the way to 64 ranks, but 48 → 64 buys only 2% for 33% more
-hardware, and efficiency drops 87% → 77% → 65% → 37% at 8 / 16 / 32 / 64.
-Extending the Karp–Flatt trend, adding ranks past about 80 would make things
-slower. And on a single machine with more ranks than cores, the curve falls
-outright (§3.6).
+
+- No. In theory Amdahl caps *n* = 100M at 110.9× no matter how many processes
+  there are.
+- In practice the cluster flattens rather than collapses: speedup keeps rising
+  all the way to 64 ranks, but 48 → 64 buys only 2% for 33% more hardware.
+- Efficiency drops 87% → 77% → 65% → 37% at 8 / 16 / 32 / 64.
+- Extending the Karp–Flatt trend, adding ranks past about 80 would make things
+  slower.
+- On a single machine with more ranks than cores, the curve falls outright
+  (§3.6).
 
 **How does the workload distribution affect the speedup?**
-By 23%, for free: `blockcyclic` reaches 12.35× against `block`'s 10.04× at 16
-ranks. The reason is that testing a number costs more the bigger it is, so
-under `block` the rank holding the top slice finishes last and holds
-everyone up (imbalance 4.54×, which a simple √k model predicted). A `dynamic`
-scheduler balances the load perfectly but is still slower, because imbalance
-was not the main problem and the scheduler spends a whole rank fixing it
-(§3.3).
+
+- By 23%, for free: `blockcyclic` reaches 12.35× against `block`'s 10.04× at
+  16 ranks.
+- The reason is that testing a number costs more the bigger it is, so under
+  `block` the rank holding the top slice finishes last and holds everyone up
+  (imbalance 4.54×, which a simple √k model predicted).
+- A `dynamic` scheduler balances the load perfectly but is still slower,
+  because imbalance was not the main problem and the scheduler spends a whole
+  rank fixing it (§3.3).
 
 **Will the speed-up results be the same across different machines?**
-No. The Amdahl ceiling carries over, because it depends only on the
-algorithm's phase mix and *n*. Nothing measured does. A CAAS core is about
-4.7× slower than the laptop the code was developed on (53.7 s vs 11.4 s serial
-at 100M), yet the cluster reaches 23.9× where the laptop reached under 4×.
-Raw speed and scalability are separate things. The core count sets where the
-curve turns over, memory bandwidth sets how early efficiency starts to decay,
-and the network sets the 0.37 s gather floor; an InfiniBand interconnect
-would move the measurements closer to theory without changing a line of code.
+
+- No. The Amdahl ceiling carries over, because it depends only on the
+  algorithm's phase mix and *n*. Nothing measured does.
+- A CAAS core is about 4.7× slower than the laptop the code was developed on
+  (53.7 s vs 11.4 s serial at 100M), yet the cluster reaches 23.9× where the
+  laptop reached under 4×. Raw speed and scalability are separate things.
+- What each hardware property controls:
+  - Core count sets where the curve turns over.
+  - Memory bandwidth sets how early efficiency starts to decay.
+  - The network sets the 0.37 s gather floor; an InfiniBand interconnect would
+    move the measurements closer to theory without changing a line of code.
 
 **Would you recommend Open MPI for prime searching, against POSIX threads or
 OpenMP?**
-Yes, in hybrid form, when the problem needs more than one machine. Within a
-single node OpenMP is the better tool (13.39× vs MPI's 12.26× at 16 workers,
-with nothing to gather). But OpenMP cannot leave the node, and the fastest
-result in this study — 30.37× at 8×8 — is more than twice the best any
-shared-memory program can reach here. Within MPI the rule is: spend extra
-workers on threads, not ranks. Every 64-worker split with 8 or more threads
-per rank beats every split with 2 or fewer, by up to 35% (§4.3). One caveat:
-prime search is an unusually bad fit for message passing, because it produces
-46 MB of results for roughly 2 s of parallel compute, and all of it has to
-cross a process boundary. A workload that returns a single number would track
-Amdahl far more closely.
+
+- Yes, in hybrid form, when the problem needs more than one machine.
+- Within a single node OpenMP is the better tool (13.39× vs MPI's 12.26× at
+  16 workers, with nothing to gather).
+- But OpenMP cannot leave the node, and the fastest result in this study —
+  30.37× at 8×8 — is more than twice the best any shared-memory program can
+  reach here.
+- Within MPI the rule is: spend extra workers on threads, not ranks. Every
+  64-worker split with 8 or more threads per rank beats every split with 2 or
+  fewer, by up to 35% (§4.3).
+- One caveat: prime search is an unusually bad fit for message passing. It
+  produces 46 MB of results for roughly 2 s of parallel compute, and all of it
+  has to cross a process boundary. A workload that returns a single number
+  would track Amdahl far more closely.
 
 ---
 
@@ -664,14 +777,18 @@ bench/caas.sh submit hybrid       # Task 2
 bench/caas.sh pull && bench/caas.sh analyse   # -> bench/analysis-caas/
 ```
 
-Delete any old CSVs in `bench/results-caas/` before re-analysing: the analysis
-reads every file in the directory and would mix runs at different problem
-sizes. `defq`'s wall-time limit is 20 minutes, and a job that asks for more
-waits forever instead of failing. On a single machine via Docker,
-`bench/sweep.sh`, `sweep-mpi.sh` and `sweep-hybrid.sh` followed by
-`bench/analyse.py` and `bench/report.py` do the same job.
-`bench/analysis-caas/summary.csv` holds every reduced value used in this
-report; the `imbalance` column is in the raw `mpi-*.csv` files.
+Notes:
+
+- Delete any old CSVs in `bench/results-caas/` before re-analysing: the
+  analysis reads every file in the directory and would mix runs at different
+  problem sizes.
+- `defq`'s wall-time limit is 20 minutes, and a job that asks for more waits
+  forever instead of failing.
+- On a single machine via Docker, `bench/sweep.sh`, `sweep-mpi.sh` and
+  `sweep-hybrid.sh` followed by `bench/analyse.py` and `bench/report.py` do
+  the same job.
+- `bench/analysis-caas/summary.csv` holds every reduced value used in this
+  report; the `imbalance` column is in the raw `mpi-*.csv` files.
 
 ### Appendix C — Figure index
 
