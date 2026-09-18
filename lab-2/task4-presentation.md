@@ -18,8 +18,8 @@
 # Prime Search with Open MPI
 ## FIT3143 Lab #2 — Parallel Computing
 
-**Team:** ⟨Name 1⟩ (⟨ID⟩, ⟨email⟩@student.monash.edu)
-⟨Name 2⟩ (⟨ID⟩, ⟨email⟩@student.monash.edu)
+**Team:** Timothy Tan Zhi-Jing (34478000), ttan0101@student.monash.edu
+Wong Ka Jen (33214263), kwon0124@student.monash.edu
 
 **Problem.** Find every prime strictly less than *n*, output sorted.
 **Constant across all five implementations:** the trial-division kernel.
