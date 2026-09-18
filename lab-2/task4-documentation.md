@@ -2,8 +2,8 @@
 
 **FIT3143 Parallel Computing — Lab #2 Report (Task 4)**
 
-⟨Name 1⟩, ⟨Student ID⟩, ⟨email⟩@student.monash.edu
-⟨Name 2⟩, ⟨Student ID⟩, ⟨email⟩@student.monash.edu
+Timothy Tan Zhi-Jing, 34478000, ttan0101@student.monash.edu
+Wong Ka Jen, 33214263, kwon0124@student.monash.edu
 
 ---
 
